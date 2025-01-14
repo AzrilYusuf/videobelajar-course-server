@@ -1,0 +1,37 @@
+{
+  "name": "Videobelajar-Course-Express-BE",
+  "version": "1.0.0",
+  "description": "This is an app that uses express typescript, sequelize for the ORM, and MySQL for the database.",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "build": "tsc"
+  },
+  "author": "Azril Yusuf",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/cors": "latest",
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "latest",
+    "eslint-plugin-prettier": "latest",
+    "nodemon": "latest",
+    "prettier": "latest",
+    "sequelize-cli": "^6.6.2"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.12.0",
+    "sequelize-typescript": "^2.1.6",
+    "ts-node": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies.@types/dotenv": "latest"
+}
