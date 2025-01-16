@@ -10,9 +10,11 @@
   "author": "Azril Yusuf",
   "license": "MIT",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "latest",
     "@types/express": "latest",
     "@types/node": "latest",
+    "@types/sequelize": "^4.28.20",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "eslint": "latest",

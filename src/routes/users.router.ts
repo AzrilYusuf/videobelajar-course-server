@@ -1,0 +1,14 @@
+import express from 'express';
+import usersController from '../controllers/users.controller';
+const usersRouter = express.Router();
+
+// Get all users
+usersRouter.get('/users', usersController.getAllUsers);
+
+// Get user by id
+usersRouter.get('/users/:id', usersController.getUserById);
+
+// Create a new user
+usersRouter.post('/signup', usersController.createUser);
+
+export default usersRouter;
