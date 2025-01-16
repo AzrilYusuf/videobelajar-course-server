@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
-const db = require('../../db/models');
 const bcrypt_1 = require("bcrypt");
+const sequelizeErrorHandler_1 = require("../utils/sequelizeErrorHandler");
 class User {
     constructor(user) {
         if (user) {
@@ -26,7 +26,7 @@ class User {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (this.id) {
-                    const [results] = yield db.query(`
+                    const [results] = yield db.Users.query(`
                     UPDATE users SET fullname = :fullname, email = :email, 
                     phone_number = :phone_number, password = :password, 
                     updated_at = CURRENT_TIMESTAMP
@@ -38,7 +38,7 @@ class User {
                             fullname: this.fullname,
                             email: this.email,
                             phone_number: this.phone_number,
-                            password: this.password
+                            password: this.password,
                         },
                         type: sequelize_1.QueryTypes.UPDATE,
                     });
@@ -46,7 +46,7 @@ class User {
                 }
                 else {
                     const hashedPassword = yield (0, bcrypt_1.hash)(this.password, 10);
-                    const [results] = yield db.query(`
+                    const [results] = yield db.Users.query(`
                     INSERT INTO users (fullname, email, phone_number, password)
                     VALUES (:fullname, :email, :phone_number, :password)
                     RETURNING *`, {
@@ -54,7 +54,7 @@ class User {
                             fullname: this.fullname,
                             email: this.email,
                             phone_number: this.phone_number,
-                            password: hashedPassword
+                            password: hashedPassword,
                         },
                         type: sequelize_1.QueryTypes.INSERT,
                     });
@@ -62,11 +62,48 @@ class User {
                 }
             }
             catch (error) {
-                console.error(error);
-                throw new Error('Error saving user to the database.');
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Saving user to database');
+            }
+        });
+    }
+    static createNewUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                console.log(`db: ${db.users}`);
+                console.log(`Received user data: ${JSON.stringify(user)}`);
+                if (!user.email) {
+                    throw new Error('Email is required');
+                }
+                const existingUser = yield User.findByEmail(user.email);
+                if (existingUser) {
+                    throw new Error(`User ${user.email} already exists`);
+                }
+                const newUser = new User(user);
+                return yield newUser.save();
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Creating new user');
+            }
+        });
+    }
+    static findByEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const [results] = yield db.Users.query(`
+                SELECT email FROM users WHERE email = :email
+                `, {
+                    replacements: { email },
+                    types: sequelize_1.QueryTypes.SELECT,
+                });
+                if (!results)
+                    return null;
+                return new User(results[0]);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by email');
             }
         });
     }
 }
-exports.default = new User();
+exports.default = User;
 //# sourceMappingURL=user.model.js.map

@@ -12,4 +12,4 @@ let sequelizeConnection = new sequelize_1.Sequelize(process.env.DB_NAME || '', p
     port: 3306,
 });
 exports.default = sequelizeConnection;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=sequelizeConnection.js.map

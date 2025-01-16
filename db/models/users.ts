@@ -1,25 +1,22 @@
 'use strict';
-import { Model, InferAttributes, InferCreationAttributes, DataTypes, Sequelize } from 'sequelize';
+import { Model, InferAttributes, InferCreationAttributes, DataTypes } from 'sequelize';
+import sequelizeConnection from './sequelizeConnection';
 
-const sequelize = new Sequelize();
-
-    class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
+    export default class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
          * The `models/index` file will call this method automatically.
          */
-        id!: number;
-        fullname!: string;
-        email!: string;
-        phone_number!: string;
-        password!: string;
-        created_at!: Date;
-        updated_at!: Date;
+        id?: number;
+        fullname: string;
+        email: string;
+        phone_number: string;
+        password: string;
 
-        static associate(models: any) {
+        // static associate(models: any) {
             // define association here
-        }
+        // }
     }
 
     Users.init(
@@ -48,18 +45,12 @@ const sequelize = new Sequelize();
                 allowNull: false,
                 type: DataTypes.STRING(255),
             },
-            created_at: {
-                allowNull: false,
-                type: DataTypes.DATE,
-            },
-            updated_at: {
-                allowNull: false,
-                type: DataTypes.DATE,
-            },
         },
         {
-            sequelize,
+            sequelize: sequelizeConnection,
             modelName: 'users',
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
         }
     );
 

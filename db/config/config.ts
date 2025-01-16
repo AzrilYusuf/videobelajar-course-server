@@ -2,7 +2,34 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export default {
+interface Config {
+    development: {
+        username: string;
+        password: string | null;
+        database: string;
+        host: string;
+        dialect: string;
+        use_env_variable?: string;
+    };
+    test: {
+        username: string;
+        password: string | null;
+        database: string;
+        host: string;
+        dialect: string;
+        use_env_variable?: string;
+    };
+    production: {
+        username: string;
+        password: string | null;
+        database: string;
+        host: string;
+        dialect: string;
+        use_env_variable?: string;
+    };
+}
+
+const config: Config = {
     development: {
         username: process.env.DB_USERNAME || 'root',
         password: process.env.DB_PASSWORD || null,
@@ -25,3 +52,5 @@ export default {
         dialect: 'mysql',
     },
 };
+
+export default config;

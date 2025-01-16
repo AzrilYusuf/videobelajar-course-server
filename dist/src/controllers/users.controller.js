@@ -8,21 +8,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const user_model_1 = __importDefault(require("../models/user.model"));
 class UsersController {
     getAllUsers() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("hello from controller");
+            console.log('hello from controller');
         });
     }
     getUserById() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("hello from controller");
+            console.log('hello from controller');
         });
     }
-    createUser() {
+    createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("hello from controller, creating new user...");
+            try {
+                const user = yield user_model_1.default.createNewUser(req.body);
+                res.status(201).json(user);
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({ error: error.message });
+            }
         });
     }
 }

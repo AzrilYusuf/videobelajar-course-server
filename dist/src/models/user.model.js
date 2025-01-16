@@ -12,9 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const sequelize_1 = require("sequelize");
-const models_1 = __importDefault(require("../../db/models"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const users_1 = __importDefault(require("../../db/models/users"));
+const bcrypt_1 = require("bcrypt");
+const sequelizeErrorHandler_1 = require("../utils/sequelizeErrorHandler");
 class User {
     constructor(user) {
         if (user) {
@@ -29,47 +29,76 @@ class User {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (this.id) {
-                    const [results] = yield models_1.default.query(`
-                    UPDATE users SET fullname = :fullname, email = :email, 
-                    phone_number = :phone_number, password = :password, 
-                    updated_at = CURRENT_TIMESTAMP
-                    WHERE id = :id 
-                    RETURNING *
-                    `, {
-                        replacements: {
-                            id: this.id,
-                            fullname: this.fullname,
-                            email: this.email,
-                            phone_number: this.phone_number,
-                            password: this.password
-                        },
-                        type: sequelize_1.QueryTypes.UPDATE,
+                    const results = yield users_1.default.update({
+                        fullname: this.fullname,
+                        email: this.email,
+                        phone_number: this.phone_number,
+                        password: this.password,
+                    }, {
+                        where: { id: this.id },
+                        returning: true,
                     });
-                    return new User(results[0]);
+                    return new User(results[1][0]);
                 }
                 else {
-                    const hashedPassword = yield (0, bcrypt_1.default)(this.password, 10);
-                    const [results] = yield models_1.default.query(`
-                    INSERT INTO users (fullname, email, phone_number, password)
-                    VALUES (:fullname, :email, :phone_number, :password)
-                    RETURNING *`, {
-                        replacements: {
-                            fullname: this.fullname,
-                            email: this.email,
-                            phone_number: this.phone_number,
-                            password: hashedPassword
-                        },
-                        type: sequelize_1.QueryTypes.INSERT,
+                    const hashedPassword = yield (0, bcrypt_1.hash)(this.password, 10);
+                    if (!this.fullname ||
+                        !this.email ||
+                        !this.phone_number ||
+                        !hashedPassword) {
+                        throw new Error('User not found');
+                    }
+                    const results = yield users_1.default.create({
+                        fullname: this.fullname,
+                        email: this.email,
+                        phone_number: this.phone_number,
+                        password: hashedPassword,
+                    }, {
+                        returning: true,
                     });
-                    return new User(results[0]);
+                    return new User(results);
                 }
             }
             catch (error) {
-                console.error(error);
-                throw new Error('Error saving user to the database.');
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Saving user to database');
+            }
+        });
+    }
+    static createNewUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!user.email) {
+                    throw new Error('Email is required');
+                }
+                const existingUser = yield User.findByEmail(user.email);
+                if (existingUser) {
+                    throw new Error(`User ${user.email} already exists`);
+                }
+                const newUser = new User(user);
+                return yield newUser.save();
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Creating new user');
+            }
+        });
+    }
+    static findByEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const results = yield users_1.default.findOne({
+                    where: {
+                        email: email,
+                    },
+                });
+                if (!results)
+                    return null;
+                return new User(results);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by email');
             }
         });
     }
 }
-exports.default = new User();
+exports.default = User;
 //# sourceMappingURL=user.model.js.map

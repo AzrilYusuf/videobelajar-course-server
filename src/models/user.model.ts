@@ -1,15 +1,16 @@
-import { QueryTypes } from 'sequelize';
-const db = require('../../db/models');
+import Users from '../../db/models/users';
 import { hash } from 'bcrypt';
+import { UserData } from '../interfaces/userInterface';
+import { handleSequelizeError } from '../utils/sequelizeErrorHandler';
 
-class User {
+export default class User {
     private id?: number;
     private fullname?: string;
     private email?: string;
     private phone_number?: string;
     private password?: string;
 
-    constructor(user?: User) {
+    constructor(user?: UserData) {
         if (user) {
             this.id = user.id;
             this.fullname = user.fullname;
@@ -19,53 +20,89 @@ class User {
         }
     }
 
+    //** Save user information to database (update and create)
     async save(): Promise<User> {
         try {
+            //* Update user
             if (this.id) {
-                // Using array desctructuring to get the first result[0(the real data)
-                //  (because the second result[1] is metadata)
-                const [results] = await db.query(`
-                    UPDATE users SET fullname = :fullname, email = :email, 
-                    phone_number = :phone_number, password = :password, 
-                    updated_at = CURRENT_TIMESTAMP
-                    WHERE id = :id 
-                    RETURNING *
-                    `,
+                // the result of the update = [affectedCount: number, affectedRows: Users[]]
+                const results = await Users.update(
                     {
-                        replacements: {
-                            id: this.id,
-                            fullname: this.fullname,
-                            email: this.email,
-                            phone_number: this.phone_number,
-                            password: this.password
-                        }, 
-                        type: QueryTypes.UPDATE,
+                        fullname: this.fullname,
+                        email: this.email,
+                        phone_number: this.phone_number,
+                        password: this.password,
+                    },
+                    {
+                        where: { id: this.id },
+                        returning: true,
                     }
                 );
-                return new User(results[0]);
+                return new User(results[1][0]); // const results: [affectedCount: number, affectedRows: Users[]]
+                //* Create new user
             } else {
                 const hashedPassword = await hash(this.password!, 10);
-                const [results] = await db.query(`
-                    INSERT INTO users (fullname, email, phone_number, password)
-                    VALUES (:fullname, :email, :phone_number, :password)
-                    RETURNING *`,
+                // Check if all required fields are provided
+                if (
+                    !this.fullname ||
+                    !this.email ||
+                    !this.phone_number ||
+                    !hashedPassword
+                ) {
+                    throw new Error('User not found');
+                }
+                const results = await Users.create(
                     {
-                        replacements: {
-                            fullname: this.fullname,
-                            email: this.email,
-                            phone_number: this.phone_number,
-                            password: hashedPassword
-                        },
-                        type: QueryTypes.INSERT,
+                        fullname: this.fullname,
+                        email: this.email,
+                        phone_number: this.phone_number,
+                        password: hashedPassword,
+                    },
+                    {
+                        returning: true,
                     }
                 );
-                return new User(results[0]);
+                return new User(results);
             }
         } catch (error) {
-            console.error(error);
-            throw new Error('Error saving user to the database.')
+            handleSequelizeError(error, 'Saving user to database');
+        }
+    }
+
+    // ** Create a new user (Sign up)
+    static async createNewUser(user: UserData): Promise<User> {
+        try {
+            // Check if email is provided
+            if (!user.email) {
+                throw new Error('Email is required');
+            }
+
+            // Check if the user already exists
+            const existingUser = await User.findByEmail(user.email);
+            if (existingUser) {
+                throw new Error(`User ${user.email} already exists`);
+            }
+
+            const newUser = new User(user);
+            return await newUser.save(); // Save the new user to the database
+        } catch (error) {
+            handleSequelizeError(error, 'Creating new user');
+        }
+    }
+
+    // ** Find a user by email
+    static async findByEmail(email: string): Promise<User | null> {
+        try {
+            const results = await Users.findOne({
+                where: {
+                    email: email,
+                },
+            }
+            );
+            if (!results) return null;
+            return new User(results);
+        } catch (error) {
+            handleSequelizeError(error, 'Finding user by email');
         }
     }
 }
-
-export default new User();
