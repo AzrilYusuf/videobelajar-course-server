@@ -69,8 +69,22 @@ export default class User {
         }
     }
 
+    // ** Find all users
+    static async findAllUsers(): Promise<User[]> {
+        try {
+            const users = await Users.findAll({
+                attributes: {
+                    exclude: ['password'],
+                }
+            });
+            return users.map((user) => new User(user));
+        } catch (error) {
+            handleSequelizeError(error, 'Finding all users');
+        }
+    }
+
     // ** Create a new user (Sign up)
-    static async createNewUser(user: UserData): Promise<User> {
+    static async recordNewUser(user: UserData): Promise<User> {
         try {
             // Check if email is provided
             if (!user.email) {

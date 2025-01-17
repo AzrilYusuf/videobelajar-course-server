@@ -64,7 +64,22 @@ class User {
             }
         });
     }
-    static createNewUser(user) {
+    static findAllUsers() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const users = yield users_1.default.findAll({
+                    attributes: {
+                        exclude: ['password'],
+                    }
+                });
+                return users.map((user) => new User(user));
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding all users');
+            }
+        });
+    }
+    static recordNewUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!user.email) {

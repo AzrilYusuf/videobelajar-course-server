@@ -14,9 +14,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = __importDefault(require("../models/user.model"));
 class UsersController {
-    getAllUsers() {
+    getAllUsers(_req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('hello from controller');
+            try {
+                const users = yield user_model_1.default.findAllUsers();
+                res.status(200).json(users);
+            }
+            catch (error) {
+                console.error(`Could not find users : ${error}`);
+                res.json({ error: error.message });
+            }
         });
     }
     getUserById() {
@@ -27,12 +34,20 @@ class UsersController {
     createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield user_model_1.default.createNewUser(req.body);
+                const newUser = req.body;
+                if (!newUser.fullname ||
+                    !newUser.email ||
+                    !newUser.phone_number ||
+                    !newUser.password) {
+                    res.status(400);
+                    throw new Error('All fields must be filled in!');
+                }
+                const user = yield user_model_1.default.recordNewUser(newUser);
                 res.status(201).json(user);
             }
             catch (error) {
-                console.error(error);
-                res.status(500).json({ error: error.message });
+                console.error(`Could not create user : ${error}`);
+                res.json({ error: error.message });
             }
         });
     }
