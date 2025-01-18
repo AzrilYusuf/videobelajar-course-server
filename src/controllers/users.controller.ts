@@ -59,7 +59,7 @@ class UsersController {
             }
 
             await User.recordNewUser(dataUser);
-            res.status(201).json({ message: 'The user successfully created!'});
+            res.status(201).json({ message: 'The user successfully created!' });
         } catch (error) {
             console.error(`${error}`);
             res.json({ error: error.message });
@@ -90,8 +90,8 @@ class UsersController {
                 throw new Error('All fields must be filled in!');
             }
 
-            await User.updateUser({ id: userId, ...dataUser});
-            res.status(204).json({ message: 'The user successfully updated!'});
+            await User.updateUser({ id: userId, ...dataUser });
+            res.status(204).json({ message: 'The user successfully updated!' });
         } catch (error) {
             console.error(error);
             res.json({ error: error.message });

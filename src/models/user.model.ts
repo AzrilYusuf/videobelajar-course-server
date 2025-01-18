@@ -26,7 +26,10 @@ export default class User {
             //* Update user
             if (this.id) {
                 const hashedPassword: string = await hash(this.password!, 10);
-                const [rowsUpdated, results]: [affectedCount: number, affectedRows: Users[]] = await Users.update(
+                const [rowsUpdated, results]: [
+                    affectedCount: number,
+                    affectedRows: Users[],
+                ] = await Users.update(
                     {
                         fullname: this.fullname,
                         email: this.email,
@@ -110,7 +113,9 @@ export default class User {
             }
 
             // Check if the user already exists
-            const existingUser: User | null = await User.findByEmail(user.email);
+            const existingUser: User | null = await User.findByEmail(
+                user.email
+            );
             if (existingUser) {
                 throw new Error(`User ${user.email} already exists`);
             }
