@@ -150,6 +150,21 @@ class User {
             }
         });
     }
+    static deleteUser(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existingUser = yield users_1.default.findByPk(id);
+                if (!existingUser) {
+                    throw new Error('User not found.');
+                }
+                yield users_1.default.destroy({ where: { id } });
+                return new User(existingUser);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Deleting user');
+            }
+        });
+    }
 }
 exports.default = User;
 //# sourceMappingURL=user.model.js.map

@@ -1,6 +1,6 @@
-import express from 'express';
+import express, { Router } from 'express';
 import usersController from '../controllers/users.controller';
-const usersRouter = express.Router();
+const usersRouter: Router = express.Router();
 
 // Get all users
 usersRouter.get('/users', usersController.getAllUsers);
@@ -8,10 +8,13 @@ usersRouter.get('/users', usersController.getAllUsers);
 // Get user by id
 usersRouter.get('/users/:id', usersController.getUserById);
 
-// Create a new user
+// Create new user
 usersRouter.post('/signup', usersController.createUser);
 
-// Update a user
+// Update user
 usersRouter.put('/users/:id', usersController.updateUser);
+
+// Delete user
+usersRouter.delete('/users/:id', usersController.deleteUser);
 
 export default usersRouter;
