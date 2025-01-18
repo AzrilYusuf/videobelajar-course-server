@@ -1,5 +1,5 @@
 {
-  "name": "Videobelajar-Course-Express-BE",
+  "name": "Videobelajar-Course-Server",
   "version": "1.0.0",
   "description": "This is an app that uses express typescript, sequelize for the ORM, and MySQL for the database.",
   "main": "src/index.ts",
