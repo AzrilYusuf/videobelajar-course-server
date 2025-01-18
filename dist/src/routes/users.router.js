@@ -10,5 +10,6 @@ usersRouter.get('/users', users_controller_1.default.getAllUsers);
 usersRouter.get('/users/:id', users_controller_1.default.getUserById);
 usersRouter.post('/signup', users_controller_1.default.createUser);
 usersRouter.put('/users/:id', users_controller_1.default.updateUser);
+usersRouter.delete('/users/:id', users_controller_1.default.deleteUser);
 exports.default = usersRouter;
 //# sourceMappingURL=users.router.js.map

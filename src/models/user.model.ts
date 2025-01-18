@@ -151,4 +151,17 @@ export default class User {
             handleSequelizeError(error, 'Updating user');
         }
     }
+
+    static async deleteUser(id: number): Promise<User> {
+        try {
+            const existingUser = await Users.findByPk(id);
+            if (!existingUser) {
+                throw new Error('User not found.');
+            }
+            await Users.destroy({ where: { id } });
+            return new User(existingUser);
+        } catch (error) {
+            handleSequelizeError(error, 'Deleting user');
+        }
+    }
 }

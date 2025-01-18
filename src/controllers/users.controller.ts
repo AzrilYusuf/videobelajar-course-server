@@ -58,9 +58,8 @@ class UsersController {
                 throw new Error('All fields must be filled in!');
             }
 
-            const newUser: User = await User.recordNewUser(dataUser);
-
-            res.status(201).json(newUser);
+            await User.recordNewUser(dataUser);
+            res.status(201).json({ message: 'The user successfully created!'});
         } catch (error) {
             console.error(`${error}`);
             res.json({ error: error.message });
@@ -79,7 +78,24 @@ class UsersController {
             }
 
             await User.updateUser({ id: userId, ...dataUser});
-            res.status(201).json({ message: 'The user is successfully updated!'});
+            res.status(204).json({ message: 'The user successfully updated!'});
+        } catch (error) {
+            console.error(error);
+            res.json({ error: error.message });
+        }
+    }
+
+    async deleteUser(req: Request, res: Response): Promise<void> {
+        try {
+            const userId: number = Number(req.params.id);
+
+            if (!userId) {
+                res.status(403).json({ error: 'The request is invalid' });
+                throw new Error('The request is invalid');
+            }
+
+            await User.deleteUser(userId);
+            res.status(204).json({ message: 'The user successfully deleted!' });
         } catch (error) {
             console.error(error);
             res.json({ error: error.message });

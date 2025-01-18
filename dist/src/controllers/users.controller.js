@@ -64,8 +64,8 @@ class UsersController {
                     });
                     throw new Error('All fields must be filled in!');
                 }
-                const newUser = yield user_model_1.default.recordNewUser(dataUser);
-                res.status(201).json(newUser);
+                yield user_model_1.default.recordNewUser(dataUser);
+                res.status(201).json({ message: 'The user successfully created!' });
             }
             catch (error) {
                 console.error(`${error}`);
@@ -84,7 +84,24 @@ class UsersController {
                     throw new Error('The request is invalid');
                 }
                 yield user_model_1.default.updateUser(Object.assign({ id: userId }, dataUser));
-                res.status(201).json({ message: 'The user is successfully updated!' });
+                res.status(204).json({ message: 'The user successfully updated!' });
+            }
+            catch (error) {
+                console.error(error);
+                res.json({ error: error.message });
+            }
+        });
+    }
+    deleteUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = Number(req.params.id);
+                if (!userId) {
+                    res.status(403).json({ error: 'The request is invalid' });
+                    throw new Error('The request is invalid');
+                }
+                yield user_model_1.default.deleteUser(userId);
+                res.status(204).json({ message: 'The user successfully deleted!' });
             }
             catch (error) {
                 console.error(error);
