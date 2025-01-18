@@ -11,4 +11,7 @@ usersRouter.get('/users/:id', usersController.getUserById);
 // Create a new user
 usersRouter.post('/signup', usersController.createUser);
 
+// Update a user
+usersRouter.put('/users/:id', usersController.updateUser);
+
 export default usersRouter;

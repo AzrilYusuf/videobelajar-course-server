@@ -33,9 +33,9 @@ class UsersController {
     getUserById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const id = req.params.id;
+                const id = Number(req.params.id);
                 if (!id) {
-                    res.status(400).json({ error: 'The request is invalid' });
+                    res.status(403).json({ error: 'The request is invalid' });
                     throw new Error('The request is invalid');
                 }
                 const user = yield user_model_1.default.findUserById(id);
@@ -54,19 +54,40 @@ class UsersController {
     createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const newUser = req.body;
-                if (!newUser.fullname ||
-                    !newUser.email ||
-                    !newUser.phone_number ||
-                    !newUser.password) {
-                    res.status(400).json({ error: 'All fields must be filled in!' });
+                const dataUser = req.body;
+                if (!dataUser.fullname ||
+                    !dataUser.email ||
+                    !dataUser.phone_number ||
+                    !dataUser.password) {
+                    res.status(400).json({
+                        error: 'All fields must be filled in!',
+                    });
                     throw new Error('All fields must be filled in!');
                 }
-                const user = yield user_model_1.default.recordNewUser(newUser);
-                res.status(201).json(user);
+                const newUser = yield user_model_1.default.recordNewUser(dataUser);
+                res.status(201).json(newUser);
             }
             catch (error) {
                 console.error(`${error}`);
+                res.json({ error: error.message });
+            }
+        });
+    }
+    updateUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = Number(req.params.id);
+                const dataUser = req.body;
+                console.log(`user id from params: ${typeof userId}`);
+                if (!userId) {
+                    res.status(403).json({ error: 'The request is invalid' });
+                    throw new Error('The request is invalid');
+                }
+                yield user_model_1.default.updateUser(Object.assign({ id: userId }, dataUser));
+                res.status(201).json({ message: 'The user is successfully updated!' });
+            }
+            catch (error) {
+                console.error(error);
                 res.json({ error: error.message });
             }
         });
