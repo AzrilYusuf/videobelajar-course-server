@@ -25,20 +25,24 @@ export default class User {
         try {
             //* Update user
             if (this.id) {
+                const hashedPassword = await hash(this.password!, 10);
                 // the result of the update = [affectedCount: number, affectedRows: Users[]]
-                const results = await Users.update(
+                const [rowsUpdated, results] = await Users.update(
                     {
                         fullname: this.fullname,
                         email: this.email,
                         phone_number: this.phone_number,
-                        password: this.password,
+                        password: hashedPassword,
                     },
                     {
                         where: { id: this.id },
                         returning: true,
                     }
                 );
-                return new User(results[1][0]); // const results: [affectedCount: number, affectedRows: Users[]]
+                if (rowsUpdated === 0) {
+                    throw new Error('No changes were made.');
+                }
+                return new User(results[0]); // const results: [affectedCount: number, affectedRows: Users[]]
                 //* Create new user
             } else {
                 const hashedPassword = await hash(this.password!, 10);
@@ -84,7 +88,7 @@ export default class User {
     }
 
     // ** Find a user by id
-    static async findUserById(id: string): Promise<User | null> {
+    static async findUserById(id: number): Promise<User | null> {
         try {
             const user = await Users.findByPk(id, {
                 attributes: {
@@ -131,6 +135,20 @@ export default class User {
             return new User(results);
         } catch (error) {
             handleSequelizeError(error, 'Finding user by email');
+        }
+    }
+
+    static async updateUser(user: UserData): Promise<User> {
+        try {
+            const existingUser = await Users.findByPk(user.id);
+            if (!existingUser) {
+                throw new Error('User not found.');
+            }
+            const updatedUser = new User(user);
+
+            return await updatedUser.save();
+        } catch (error) {
+            handleSequelizeError(error, 'Updating user');
         }
     }
 }

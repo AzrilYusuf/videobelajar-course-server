@@ -29,16 +29,20 @@ class User {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (this.id) {
-                    const results = yield users_1.default.update({
+                    const hashedPassword = yield (0, bcrypt_1.hash)(this.password, 10);
+                    const [rowsUpdated, results] = yield users_1.default.update({
                         fullname: this.fullname,
                         email: this.email,
                         phone_number: this.phone_number,
-                        password: this.password,
+                        password: hashedPassword,
                     }, {
                         where: { id: this.id },
                         returning: true,
                     });
-                    return new User(results[1][0]);
+                    if (rowsUpdated === 0) {
+                        throw new Error('No changes were made.');
+                    }
+                    return new User(results[0]);
                 }
                 else {
                     const hashedPassword = yield (0, bcrypt_1.hash)(this.password, 10);
@@ -128,6 +132,21 @@ class User {
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by email');
+            }
+        });
+    }
+    static updateUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existingUser = yield users_1.default.findByPk(user.id);
+                if (!existingUser) {
+                    throw new Error('User not found.');
+                }
+                const updatedUser = new User(user);
+                return yield updatedUser.save();
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Updating user');
             }
         });
     }

@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
+import { UserData } from 'src/interfaces/userInterface';
 
 class UsersController {
     async getAllUsers(_req: Request, res: Response): Promise<void> {
         try {
-            const users = await User.findAllUsers();
+            const users: User[] = await User.findAllUsers();
             if (!users) {
                 res.status(404).json({ error: 'The users are not found.' });
                 throw new Error('The users are not found.');
@@ -19,13 +20,13 @@ class UsersController {
 
     async getUserById(req: Request, res: Response): Promise<void> {
         try {
-            const id: string = req.params.id;
+            const id: number = Number(req.params.id);
             if (!id) {
-                res.status(400).json({ error: 'The request is invalid' });
+                res.status(403).json({ error: 'The request is invalid' });
                 throw new Error('The request is invalid');
             }
 
-            const user = await User.findUserById(id);
+            const user: User | null = await User.findUserById(id);
 
             // If the user is not found
             if (user === null) {
@@ -42,24 +43,45 @@ class UsersController {
 
     async createUser(req: Request, res: Response): Promise<void> {
         try {
-            const newUser = req.body;
+            const dataUser: UserData = req.body;
 
             // Check if all required fields are provided
             if (
-                !newUser.fullname ||
-                !newUser.email ||
-                !newUser.phone_number ||
-                !newUser.password
+                !dataUser.fullname ||
+                !dataUser.email ||
+                !dataUser.phone_number ||
+                !dataUser.password
             ) {
-                res.status(400).json({ error: 'All fields must be filled in!' });
+                res.status(400).json({
+                    error: 'All fields must be filled in!',
+                });
                 throw new Error('All fields must be filled in!');
             }
 
-            const user = await User.recordNewUser(newUser);
+            const newUser: User = await User.recordNewUser(dataUser);
 
-            res.status(201).json(user);
+            res.status(201).json(newUser);
         } catch (error) {
             console.error(`${error}`);
+            res.json({ error: error.message });
+        }
+    }
+
+    async updateUser(req: Request, res: Response): Promise<void> {
+        try {
+            const userId: number = Number(req.params.id);
+            const dataUser: UserData = req.body;
+            console.log(`user id from params: ${typeof userId}`);
+
+            if (!userId) {
+                res.status(403).json({ error: 'The request is invalid' });
+                throw new Error('The request is invalid');
+            }
+
+            await User.updateUser({ id: userId, ...dataUser});
+            res.status(201).json({ message: 'The user is successfully updated!'});
+        } catch (error) {
+            console.error(error);
             res.json({ error: error.message });
         }
     }
