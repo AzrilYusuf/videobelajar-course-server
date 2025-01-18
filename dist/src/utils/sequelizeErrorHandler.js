@@ -16,8 +16,8 @@ function handleSequelizeError(error, context = 'Operation') {
         throw new Error('A database error occurred. Please try again later.');
     }
     else {
-        console.error(`${context} - Unknown Error:`, error.message);
-        throw new Error('An unexpected error occurred.');
+        console.error(`${context} - Error:`, error.message);
+        throw new Error(error.message);
     }
 }
 //# sourceMappingURL=sequelizeErrorHandler.js.map

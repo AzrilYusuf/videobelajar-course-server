@@ -49,7 +49,7 @@ export default class User {
                     !this.phone_number ||
                     !hashedPassword
                 ) {
-                    throw new Error('User not found');
+                    throw new Error('Data is invalid');
                 }
                 const results = await Users.create(
                     {
@@ -75,11 +75,26 @@ export default class User {
             const users = await Users.findAll({
                 attributes: {
                     exclude: ['password'],
-                }
+                },
             });
             return users.map((user) => new User(user));
         } catch (error) {
             handleSequelizeError(error, 'Finding all users');
+        }
+    }
+
+    // ** Find a user by id
+    static async findUserById(id: string): Promise<User | null> {
+        try {
+            const user = await Users.findByPk(id, {
+                attributes: {
+                    exclude: ['password'],
+                },
+            });
+            if (!user) return null;
+            return new User(user);
+        } catch (error) {
+            handleSequelizeError(error, 'Finding user by id');
         }
     }
 
@@ -88,7 +103,7 @@ export default class User {
         try {
             // Check if email is provided
             if (!user.email) {
-                throw new Error('Email is required');
+                throw new Error('Email is required!');
             }
 
             // Check if the user already exists
@@ -98,7 +113,7 @@ export default class User {
             }
 
             const newUser = new User(user);
-            return await newUser.save(); // Save the new user to the database
+            return await newUser.save(); // Save new user to the database
         } catch (error) {
             handleSequelizeError(error, 'Creating new user');
         }
@@ -111,8 +126,7 @@ export default class User {
                 where: {
                     email: email,
                 },
-            }
-            );
+            });
             if (!results) return null;
             return new User(results);
         } catch (error) {

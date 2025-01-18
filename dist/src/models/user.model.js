@@ -46,7 +46,7 @@ class User {
                         !this.email ||
                         !this.phone_number ||
                         !hashedPassword) {
-                        throw new Error('User not found');
+                        throw new Error('Data is invalid');
                     }
                     const results = yield users_1.default.create({
                         fullname: this.fullname,
@@ -70,7 +70,7 @@ class User {
                 const users = yield users_1.default.findAll({
                     attributes: {
                         exclude: ['password'],
-                    }
+                    },
                 });
                 return users.map((user) => new User(user));
             }
@@ -79,11 +79,28 @@ class User {
             }
         });
     }
+    static findUserById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield users_1.default.findByPk(id, {
+                    attributes: {
+                        exclude: ['password'],
+                    },
+                });
+                if (!user)
+                    return null;
+                return new User(user);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by id');
+            }
+        });
+    }
     static recordNewUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!user.email) {
-                    throw new Error('Email is required');
+                    throw new Error('Email is required!');
                 }
                 const existingUser = yield User.findByEmail(user.email);
                 if (existingUser) {

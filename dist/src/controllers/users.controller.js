@@ -18,17 +18,37 @@ class UsersController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const users = yield user_model_1.default.findAllUsers();
+                if (!users) {
+                    res.status(404).json({ error: 'The users are not found.' });
+                    throw new Error('The users are not found.');
+                }
                 res.status(200).json(users);
             }
             catch (error) {
-                console.error(`Could not find users : ${error}`);
+                console.error(`${error}`);
                 res.json({ error: error.message });
             }
         });
     }
-    getUserById() {
+    getUserById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('hello from controller');
+            try {
+                const id = req.params.id;
+                if (!id) {
+                    res.status(400).json({ error: 'The request is invalid' });
+                    throw new Error('The request is invalid');
+                }
+                const user = yield user_model_1.default.findUserById(id);
+                if (user === null) {
+                    res.status(404).json({ error: 'The user is not found.' });
+                    throw new Error('The user is not found.');
+                }
+                res.status(200).json(user);
+            }
+            catch (error) {
+                console.error(`${error}`);
+                res.json({ error: error.message });
+            }
         });
     }
     createUser(req, res) {
@@ -39,14 +59,14 @@ class UsersController {
                     !newUser.email ||
                     !newUser.phone_number ||
                     !newUser.password) {
-                    res.status(400);
+                    res.status(400).json({ error: 'All fields must be filled in!' });
                     throw new Error('All fields must be filled in!');
                 }
                 const user = yield user_model_1.default.recordNewUser(newUser);
                 res.status(201).json(user);
             }
             catch (error) {
-                console.error(`Could not create user : ${error}`);
+                console.error(`${error}`);
                 res.json({ error: error.message });
             }
         });

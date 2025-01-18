@@ -26,7 +26,7 @@ export function handleSequelizeError(
         console.error(`${context} - Database Error:`, error.message);
         throw new Error('A database error occurred. Please try again later.');
     } else {
-        console.error(`${context} - Unknown Error:`, (error as Error).message);
-        throw new Error('An unexpected error occurred.');
+        console.error(`${context} - Error:`, (error as Error).message);
+        throw new Error((error as Error).message);
     }
 }
