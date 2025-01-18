@@ -77,6 +77,19 @@ class UsersController {
                 throw new Error('The request is invalid');
             }
 
+            // Check if all required fields are provided
+            if (
+                !dataUser.fullname ||
+                !dataUser.email ||
+                !dataUser.phone_number ||
+                !dataUser.password
+            ) {
+                res.status(400).json({
+                    error: 'All fields must be filled in!',
+                });
+                throw new Error('All fields must be filled in!');
+            }
+
             await User.updateUser({ id: userId, ...dataUser});
             res.status(204).json({ message: 'The user successfully updated!'});
         } catch (error) {

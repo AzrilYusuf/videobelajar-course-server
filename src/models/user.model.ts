@@ -25,9 +25,8 @@ export default class User {
         try {
             //* Update user
             if (this.id) {
-                const hashedPassword = await hash(this.password!, 10);
-                // the result of the update = [affectedCount: number, affectedRows: Users[]]
-                const [rowsUpdated, results] = await Users.update(
+                const hashedPassword: string = await hash(this.password!, 10);
+                const [rowsUpdated, results]: [affectedCount: number, affectedRows: Users[]] = await Users.update(
                     {
                         fullname: this.fullname,
                         email: this.email,
@@ -45,7 +44,7 @@ export default class User {
                 return new User(results[0]); // const results: [affectedCount: number, affectedRows: Users[]]
                 //* Create new user
             } else {
-                const hashedPassword = await hash(this.password!, 10);
+                const hashedPassword: string = await hash(this.password!, 10);
                 // Check if all required fields are provided
                 if (
                     !this.fullname ||
@@ -55,7 +54,7 @@ export default class User {
                 ) {
                     throw new Error('Data is invalid');
                 }
-                const results = await Users.create(
+                const results: Users = await Users.create(
                     {
                         fullname: this.fullname,
                         email: this.email,
@@ -76,7 +75,7 @@ export default class User {
     // ** Find all users
     static async findAllUsers(): Promise<User[]> {
         try {
-            const users = await Users.findAll({
+            const users: Users[] = await Users.findAll({
                 attributes: {
                     exclude: ['password'],
                 },
@@ -90,7 +89,7 @@ export default class User {
     // ** Find a user by id
     static async findUserById(id: number): Promise<User | null> {
         try {
-            const user = await Users.findByPk(id, {
+            const user: Users | null = await Users.findByPk(id, {
                 attributes: {
                     exclude: ['password'],
                 },
@@ -111,12 +110,12 @@ export default class User {
             }
 
             // Check if the user already exists
-            const existingUser = await User.findByEmail(user.email);
+            const existingUser: User | null = await User.findByEmail(user.email);
             if (existingUser) {
                 throw new Error(`User ${user.email} already exists`);
             }
 
-            const newUser = new User(user);
+            const newUser: User = new User(user);
             return await newUser.save(); // Save new user to the database
         } catch (error) {
             handleSequelizeError(error, 'Creating new user');
@@ -126,7 +125,7 @@ export default class User {
     // ** Find a user by email
     static async findByEmail(email: string): Promise<User | null> {
         try {
-            const results = await Users.findOne({
+            const results: Users | null = await Users.findOne({
                 where: {
                     email: email,
                 },
@@ -140,11 +139,11 @@ export default class User {
 
     static async updateUser(user: UserData): Promise<User> {
         try {
-            const existingUser = await Users.findByPk(user.id);
+            const existingUser: Users | null = await Users.findByPk(user.id);
             if (!existingUser) {
                 throw new Error('User not found.');
             }
-            const updatedUser = new User(user);
+            const updatedUser: User = new User(user);
 
             return await updatedUser.save();
         } catch (error) {
@@ -154,7 +153,7 @@ export default class User {
 
     static async deleteUser(id: number): Promise<User> {
         try {
-            const existingUser = await Users.findByPk(id);
+            const existingUser: Users | null = await Users.findByPk(id);
             if (!existingUser) {
                 throw new Error('User not found.');
             }
