@@ -28,13 +28,15 @@ class User {
     save() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                if (this.password) {
+                    this.password = yield (0, bcrypt_1.hash)(this.password, 10);
+                }
                 if (this.id) {
-                    const hashedPassword = yield (0, bcrypt_1.hash)(this.password, 10);
                     const [rowsUpdated, results] = yield users_1.default.update({
                         fullname: this.fullname,
                         email: this.email,
                         phone_number: this.phone_number,
-                        password: hashedPassword,
+                        password: this.password,
                     }, {
                         where: { id: this.id },
                         returning: true,
@@ -45,18 +47,17 @@ class User {
                     return new User(results[0]);
                 }
                 else {
-                    const hashedPassword = yield (0, bcrypt_1.hash)(this.password, 10);
                     if (!this.fullname ||
                         !this.email ||
                         !this.phone_number ||
-                        !hashedPassword) {
+                        !this.password) {
                         throw new Error('Data is invalid');
                     }
                     const results = yield users_1.default.create({
                         fullname: this.fullname,
                         email: this.email,
                         phone_number: this.phone_number,
-                        password: hashedPassword,
+                        password: this.password,
                     }, {
                         returning: true,
                     });
@@ -100,7 +101,7 @@ class User {
             }
         });
     }
-    static recordNewUser(user) {
+    static createNewUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!user.email) {
