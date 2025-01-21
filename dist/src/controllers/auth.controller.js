@@ -13,22 +13,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = __importDefault(require("../models/user.model"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 class AuthController {
     registerUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const dataUser = req.body;
-                if (!dataUser.fullname ||
-                    !dataUser.email ||
-                    !dataUser.phone_number ||
-                    !dataUser.password) {
+                const createdUser = yield user_model_1.default.createNewUser(dataUser);
+                if (typeof createdUser === 'string') {
                     res.status(400).json({
-                        error: 'All fields must be filled in!',
+                        error: `User ${createdUser} already exists.`,
                     });
-                    throw new Error('All fields must be filled in!');
+                    throw new Error(`User ${createdUser} already exists.`);
                 }
-                yield user_model_1.default.createNewUser(dataUser);
+                if (!createdUser) {
+                    res.status(400).json({ error: 'The user is not created.' });
+                    throw new Error('The user is not created.');
+                }
                 res.status(201).json({ message: 'The user successfully created!' });
+            }
+            catch (error) {
+                console.error(`${error}`);
+                res.json({ error: error.message });
+            }
+        });
+    }
+    loginUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { email, password } = req.body;
+                const existingUser = yield user_model_1.default.findByEmail(email);
+                if (!existingUser) {
+                    res.status(404).json({
+                        error: 'The user is not registered yet.',
+                    });
+                    throw new Error('The user is not registered yet.');
+                }
+                const isPasswordValid = yield bcrypt_1.default.compare(password, existingUser.password);
+                if (!isPasswordValid) {
+                    res.status(401).json({ error: 'The password is invalid.' });
+                    throw new Error('The password is invalid.');
+                }
+                res.status(200).json(existingUser);
             }
             catch (error) {
                 console.error(`${error}`);

@@ -9,5 +9,6 @@ const validationMiddleware_1 = __importDefault(require("../middlewares/validatio
 const auth_controller_1 = __importDefault(require("../controllers/auth.controller"));
 const authRouter = express_1.default.Router();
 authRouter.post('/signup', ...auth_validator_1.default.createUserValidator(), validationMiddleware_1.default, auth_controller_1.default.registerUser);
+authRouter.post('/signin', auth_controller_1.default.loginUser);
 exports.default = authRouter;
 //# sourceMappingURL=auth.router.js.map
