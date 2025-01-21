@@ -23,9 +23,12 @@ export default class User {
     //** Save user information to database (update and create)
     async save(): Promise<User> {
         try {
+            if (this.password) {
+                this.password = await hash(this.password!, 10);
+            }
+
             //* Update user
             if (this.id) {
-                const hashedPassword: string = await hash(this.password!, 10);
                 const [rowsUpdated, results]: [
                     affectedCount: number,
                     affectedRows: Users[],
@@ -34,7 +37,7 @@ export default class User {
                         fullname: this.fullname,
                         email: this.email,
                         phone_number: this.phone_number,
-                        password: hashedPassword,
+                        password: this.password,
                     },
                     {
                         where: { id: this.id },
@@ -47,13 +50,13 @@ export default class User {
                 return new User(results[0]); // const results: [affectedCount: number, affectedRows: Users[]]
                 //* Create new user
             } else {
-                const hashedPassword: string = await hash(this.password!, 10);
+                // const hashedPassword: string = await hash(this.password!, 10);
                 // Check if all required fields are provided
                 if (
                     !this.fullname ||
                     !this.email ||
                     !this.phone_number ||
-                    !hashedPassword
+                    !this.password
                 ) {
                     throw new Error('Data is invalid');
                 }
@@ -62,7 +65,7 @@ export default class User {
                         fullname: this.fullname,
                         email: this.email,
                         phone_number: this.phone_number,
-                        password: hashedPassword,
+                        password: this.password,
                     },
                     {
                         returning: true,
@@ -105,7 +108,7 @@ export default class User {
     }
 
     // ** Create a new user (Sign up)
-    static async recordNewUser(user: UserData): Promise<User> {
+    static async createNewUser(user: UserData): Promise<User> {
         try {
             // Check if email is provided
             if (!user.email) {
