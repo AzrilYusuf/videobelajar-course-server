@@ -13,6 +13,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "latest",
     "@types/express": "latest",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "latest",
     "@types/sequelize": "^4.28.20",
     "@typescript-eslint/eslint-plugin": "latest",
