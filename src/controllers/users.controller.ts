@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
-import { UserData } from 'src/interfaces/userInterface';
+import { UpdateUser } from 'src/interfaces/userInterface';
 
 class UsersController {
     async getAllUsers(_req: Request, res: Response): Promise<void> {
@@ -44,28 +44,20 @@ class UsersController {
     async updateUser(req: Request, res: Response): Promise<void> {
         try {
             const userId: number = Number(req.params.id);
-            const dataUser: UserData = req.body;
-            console.log(`user id from params: ${typeof userId}`);
+            const dataUser: UpdateUser = req.body;
 
+            // The user id is required
             if (!userId) {
                 res.status(403).json({ error: 'The request is invalid' });
                 throw new Error('The request is invalid');
             }
 
-            // Check if all required fields are provided
-            if (
-                !dataUser.fullname ||
-                !dataUser.email ||
-                !dataUser.phone_number ||
-                !dataUser.password
-            ) {
-                res.status(400).json({
-                    error: 'All fields must be filled in!',
-                });
-                throw new Error('All fields must be filled in!');
+            const updatedUser: User | null = await User.updateUserData(userId, dataUser);
+            if (!updatedUser) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
             }
 
-            await User.updateUser({ id: userId, ...dataUser });
             res.status(204).json({ message: 'The user successfully updated!' });
         } catch (error) {
             console.error(error);
@@ -82,7 +74,13 @@ class UsersController {
                 throw new Error('The request is invalid');
             }
 
-            await User.deleteUser(userId);
+            const deletedUser: User | null = await User.deleteUser(userId);
+            // If the user is not found
+            if(!deletedUser) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
+            }
+
             res.status(204).json({ message: 'The user successfully deleted!' });
         } catch (error) {
             console.error(error);

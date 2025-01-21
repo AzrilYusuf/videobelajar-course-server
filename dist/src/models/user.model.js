@@ -42,17 +42,11 @@ class User {
                         returning: true,
                     });
                     if (rowsUpdated === 0) {
-                        throw new Error('No changes were made.');
+                        return null;
                     }
                     return new User(results[0]);
                 }
                 else {
-                    if (!this.fullname ||
-                        !this.email ||
-                        !this.phone_number ||
-                        !this.password) {
-                        throw new Error('Data is invalid');
-                    }
                     const results = yield users_1.default.create({
                         fullname: this.fullname,
                         email: this.email,
@@ -66,6 +60,21 @@ class User {
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Saving user to database');
+            }
+        });
+    }
+    static createNewUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existingUser = yield User.findByEmail(user.email);
+                if (existingUser) {
+                    return existingUser.email;
+                }
+                const newUser = new User(user);
+                return yield newUser.save();
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Creating new user');
             }
         });
     }
@@ -101,24 +110,6 @@ class User {
             }
         });
     }
-    static createNewUser(user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                if (!user.email) {
-                    throw new Error('Email is required!');
-                }
-                const existingUser = yield User.findByEmail(user.email);
-                if (existingUser) {
-                    throw new Error(`User ${user.email} already exists`);
-                }
-                const newUser = new User(user);
-                return yield newUser.save();
-            }
-            catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Creating new user');
-            }
-        });
-    }
     static findByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -136,14 +127,14 @@ class User {
             }
         });
     }
-    static updateUser(user) {
+    static updateUserData(userId, userData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const existingUser = yield users_1.default.findByPk(user.id);
+                const existingUser = yield users_1.default.findByPk(userId);
                 if (!existingUser) {
-                    throw new Error('User not found.');
+                    return null;
                 }
-                const updatedUser = new User(user);
+                const updatedUser = new User(Object.assign({ id: userId }, userData));
                 return yield updatedUser.save();
             }
             catch (error) {
@@ -156,7 +147,7 @@ class User {
             try {
                 const existingUser = yield users_1.default.findByPk(id);
                 if (!existingUser) {
-                    throw new Error('User not found.');
+                    return null;
                 }
                 yield users_1.default.destroy({ where: { id } });
                 return new User(existingUser);
