@@ -11,4 +11,7 @@ authRouter.post('/signup',
     validationMiddleware,
     authController.registerUser);
 
+// Sign in user
+authRouter.post('/signin', authController.loginUser);
+
 export default authRouter;

@@ -1,16 +1,20 @@
 import Users from '../../db/models/users';
 import { hash } from 'bcrypt';
-import { UserData } from '../interfaces/userInterface';
 import { handleSequelizeError } from '../utils/sequelizeErrorHandler';
+import {
+    RegisterUser,
+    UpdateUser,
+    UserConstructor,
+} from '../interfaces/userInterface';
 
 export default class User {
     private id?: number;
-    private fullname?: string;
-    private email?: string;
-    private phone_number?: string;
-    private password?: string;
+    private fullname: string;
+    private email: string;
+    private phone_number: string;
+    public password: string;
 
-    constructor(user?: UserData) {
+    constructor(user: UserConstructor) {
         if (user) {
             this.id = user.id;
             this.fullname = user.fullname;
@@ -21,7 +25,7 @@ export default class User {
     }
 
     //** Save user information to database (update and create)
-    async save(): Promise<User> {
+    async save(): Promise<User | null> {
         try {
             if (this.password) {
                 this.password = await hash(this.password!, 10);
@@ -45,21 +49,11 @@ export default class User {
                     }
                 );
                 if (rowsUpdated === 0) {
-                    throw new Error('No changes were made.');
+                    return null;
                 }
-                return new User(results[0]); // const results: [affectedCount: number, affectedRows: Users[]]
+                return new User(results[0]);
                 //* Create new user
             } else {
-                // const hashedPassword: string = await hash(this.password!, 10);
-                // Check if all required fields are provided
-                if (
-                    !this.fullname ||
-                    !this.email ||
-                    !this.phone_number ||
-                    !this.password
-                ) {
-                    throw new Error('Data is invalid');
-                }
                 const results: Users = await Users.create(
                     {
                         fullname: this.fullname,
@@ -75,6 +69,24 @@ export default class User {
             }
         } catch (error) {
             handleSequelizeError(error, 'Saving user to database');
+        }
+    }
+
+    // ** Create a new user (Sign up)
+    static async createNewUser(user: RegisterUser): Promise<User | string | null> {
+        try {
+            // Check if the user already exists
+            const existingUser: User | null = await User.findByEmail(
+                user.email
+            );
+            if (existingUser) {
+                return existingUser.email;
+            }
+
+            const newUser: User = new User(user);
+            return await newUser.save(); // Save new user to the database
+        } catch (error) {
+            handleSequelizeError(error, 'Creating new user');
         }
     }
 
@@ -107,29 +119,6 @@ export default class User {
         }
     }
 
-    // ** Create a new user (Sign up)
-    static async createNewUser(user: UserData): Promise<User> {
-        try {
-            // Check if email is provided
-            if (!user.email) {
-                throw new Error('Email is required!');
-            }
-
-            // Check if the user already exists
-            const existingUser: User | null = await User.findByEmail(
-                user.email
-            );
-            if (existingUser) {
-                throw new Error(`User ${user.email} already exists`);
-            }
-
-            const newUser: User = new User(user);
-            return await newUser.save(); // Save new user to the database
-        } catch (error) {
-            handleSequelizeError(error, 'Creating new user');
-        }
-    }
-
     // ** Find a user by email
     static async findByEmail(email: string): Promise<User | null> {
         try {
@@ -145,26 +134,30 @@ export default class User {
         }
     }
 
-    static async updateUser(user: UserData): Promise<User> {
+    static async updateUserData(
+        userId: number,
+        userData: UpdateUser
+    ): Promise<User | null> {
         try {
-            const existingUser: Users | null = await Users.findByPk(user.id);
+            const existingUser: Users | null = await Users.findByPk(userId);
             if (!existingUser) {
-                throw new Error('User not found.');
+                return null;
             }
-            const updatedUser: User = new User(user);
 
+            const updatedUser: User = new User({ id: userId, ...userData });
             return await updatedUser.save();
         } catch (error) {
             handleSequelizeError(error, 'Updating user');
         }
     }
 
-    static async deleteUser(id: number): Promise<User> {
+    static async deleteUser(id: number): Promise<User | null> {
         try {
             const existingUser: Users | null = await Users.findByPk(id);
             if (!existingUser) {
-                throw new Error('User not found.');
+                return null;
             }
+
             await Users.destroy({ where: { id } });
             return new User(existingUser);
         } catch (error) {

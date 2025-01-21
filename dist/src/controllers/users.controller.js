@@ -56,21 +56,15 @@ class UsersController {
             try {
                 const userId = Number(req.params.id);
                 const dataUser = req.body;
-                console.log(`user id from params: ${typeof userId}`);
                 if (!userId) {
                     res.status(403).json({ error: 'The request is invalid' });
                     throw new Error('The request is invalid');
                 }
-                if (!dataUser.fullname ||
-                    !dataUser.email ||
-                    !dataUser.phone_number ||
-                    !dataUser.password) {
-                    res.status(400).json({
-                        error: 'All fields must be filled in!',
-                    });
-                    throw new Error('All fields must be filled in!');
+                const updatedUser = yield user_model_1.default.updateUserData(userId, dataUser);
+                if (!updatedUser) {
+                    res.status(404).json({ error: 'The user is not found.' });
+                    throw new Error('The user is not found.');
                 }
-                yield user_model_1.default.updateUser(Object.assign({ id: userId }, dataUser));
                 res.status(204).json({ message: 'The user successfully updated!' });
             }
             catch (error) {
@@ -87,7 +81,11 @@ class UsersController {
                     res.status(403).json({ error: 'The request is invalid' });
                     throw new Error('The request is invalid');
                 }
-                yield user_model_1.default.deleteUser(userId);
+                const deletedUser = yield user_model_1.default.deleteUser(userId);
+                if (!deletedUser) {
+                    res.status(404).json({ error: 'The user is not found.' });
+                    throw new Error('The user is not found.');
+                }
                 res.status(204).json({ message: 'The user successfully deleted!' });
             }
             catch (error) {
