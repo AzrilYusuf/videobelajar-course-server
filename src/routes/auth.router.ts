@@ -12,6 +12,9 @@ authRouter.post('/signup',
     authController.registerUser);
 
 // Sign in user
-authRouter.post('/signin', authController.loginUser);
+authRouter.post('/signin',
+    ...AuthValidator.loginUserValidator(),
+    validationMiddleware,
+    authController.loginUser);
 
 export default authRouter;
