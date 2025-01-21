@@ -4,15 +4,15 @@ import usersController from '../controllers/users.controller';
 const usersRouter: Router = express.Router();
 
 // Get all users
-usersRouter.get('/users', usersController.getAllUsers);
+usersRouter.get('/', usersController.getAllUsers);
 
 // Get user by id
-usersRouter.get('/users/:id', usersController.getUserById);
+usersRouter.get('/:id', usersController.getUserById);
 
 // Update user
-usersRouter.put('/users/:id', usersController.updateUser);
+usersRouter.put('/:id', usersController.updateUser);
 
 // Delete user
-usersRouter.delete('/users/:id', usersController.deleteUser);
+usersRouter.delete('/:id', usersController.deleteUser);
 
 export default usersRouter;
