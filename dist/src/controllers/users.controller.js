@@ -26,7 +26,9 @@ class UsersController {
             }
             catch (error) {
                 console.error(`${error}`);
-                res.json({ error: error.message });
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
             }
         });
     }
@@ -47,7 +49,9 @@ class UsersController {
             }
             catch (error) {
                 console.error(`${error}`);
-                res.json({ error: error.message });
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
             }
         });
     }
@@ -69,7 +73,9 @@ class UsersController {
             }
             catch (error) {
                 console.error(error);
-                res.json({ error: error.message });
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
             }
         });
     }
@@ -90,7 +96,9 @@ class UsersController {
             }
             catch (error) {
                 console.error(error);
-                res.json({ error: error.message });
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
             }
         });
     }

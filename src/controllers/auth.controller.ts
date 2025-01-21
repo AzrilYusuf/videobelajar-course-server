@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { LoginUser, RegisterUser } from 'src/interfaces/userInterface';
 
 class AuthController {
@@ -27,7 +28,9 @@ class AuthController {
             res.status(201).json({ message: 'The user successfully created!' });
         } catch (error) {
             console.error(`${error}`);
-            res.json({ error: error.message });
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
         }
     }
 
@@ -53,10 +56,33 @@ class AuthController {
                 throw new Error('The password is invalid.');
             }
 
-            res.status(200).json(existingUser);
+            if (!process.env.ACCESS_TOKEN) {
+                throw new Error(
+                    'ACCESS_TOKEN is not defined in environment variables.'
+                );
+            }
+            const token: string = jwt.sign(
+                { id: existingUser.id },
+                process.env.ACCESS_TOKEN,
+                {
+                    expiresIn: '1h',
+                }
+            );
+
+            // Set the cookie
+            res.cookie('token', token, {
+                httpOnly: true, // The cookie only accessible by the web server
+                secure: true, // Send the cookie only via HTTPS
+                sameSite: 'strict', // The cookie is not accessible by third-party
+                maxAge: 60 * 60 * 1000, // The cookie will be removed after 1 hour
+            })
+
+            res.status(200).json({ message: 'The user successfully logged in!' });
         } catch (error) {
             console.error(`${error}`);
-            res.json({ error: error.message });
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
         }
     }
 }

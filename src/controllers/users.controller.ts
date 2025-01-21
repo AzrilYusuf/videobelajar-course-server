@@ -14,7 +14,9 @@ class UsersController {
             res.status(200).json(users);
         } catch (error) {
             console.error(`${error}`);
-            res.json({ error: error.message });
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
         }
     }
 
@@ -37,7 +39,9 @@ class UsersController {
             res.status(200).json(user);
         } catch (error) {
             console.error(`${error}`);
-            res.json({ error: error.message });
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
         }
     }
 
@@ -52,7 +56,10 @@ class UsersController {
                 throw new Error('The request is invalid');
             }
 
-            const updatedUser: User | null = await User.updateUserData(userId, dataUser);
+            const updatedUser: User | null = await User.updateUserData(
+                userId,
+                dataUser
+            );
             if (!updatedUser) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
@@ -61,7 +68,9 @@ class UsersController {
             res.status(204).json({ message: 'The user successfully updated!' });
         } catch (error) {
             console.error(error);
-            res.json({ error: error.message });
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
         }
     }
 
@@ -76,7 +85,7 @@ class UsersController {
 
             const deletedUser: User | null = await User.deleteUser(userId);
             // If the user is not found
-            if(!deletedUser) {
+            if (!deletedUser) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
             }
@@ -84,7 +93,9 @@ class UsersController {
             res.status(204).json({ message: 'The user successfully deleted!' });
         } catch (error) {
             console.error(error);
-            res.json({ error: error.message });
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
         }
     }
 }

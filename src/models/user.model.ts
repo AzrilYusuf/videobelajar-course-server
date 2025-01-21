@@ -8,7 +8,7 @@ import {
 } from '../interfaces/userInterface';
 
 export default class User {
-    private id?: number;
+    public id?: number;
     private fullname: string;
     private email: string;
     private phone_number: string;
@@ -73,7 +73,9 @@ export default class User {
     }
 
     // ** Create a new user (Sign up)
-    static async createNewUser(user: RegisterUser): Promise<User | string | null> {
+    static async createNewUser(
+        user: RegisterUser
+    ): Promise<User | string | null> {
         try {
             // Check if the user already exists
             const existingUser: User | null = await User.findByEmail(
