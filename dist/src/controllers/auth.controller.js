@@ -69,7 +69,10 @@ class AuthController {
                     sameSite: 'strict',
                     maxAge: 60 * 60 * 1000,
                 });
-                res.status(200).json({ message: 'The user successfully logged in!' });
+                res.status(200).json({
+                    message: 'The user successfully logged in!',
+                    token: token,
+                });
             }
             catch (error) {
                 console.error(`${error}`);
