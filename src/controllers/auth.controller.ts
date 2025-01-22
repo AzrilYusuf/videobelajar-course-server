@@ -69,15 +69,18 @@ class AuthController {
                 }
             );
 
-            // Set the cookie
+            // Set cookie
             res.cookie('token', token, {
                 httpOnly: true, // The cookie only accessible by the web server
                 secure: true, // Send the cookie only via HTTPS
                 sameSite: 'strict', // The cookie is not accessible by third-party
                 maxAge: 60 * 60 * 1000, // The cookie will be removed after 1 hour
-            })
+            });
 
-            res.status(200).json({ message: 'The user successfully logged in!' });
+            res.status(200).json({
+                message: 'The user successfully logged in!',
+                token: token,
+            });
         } catch (error) {
             console.error(`${error}`);
             res.status(500).json({
