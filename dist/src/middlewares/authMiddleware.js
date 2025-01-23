@@ -8,8 +8,12 @@ const authenticateUser = (req, res, next) => {
     try {
         const refreshToken = req.cookies.token;
         const { authorization } = req.headers;
+        if (!authorization || !refreshToken) {
+            res.status(401).json({ error: 'Token not provided.' });
+            throw new Error('Token not provided.');
+        }
         const accessToken = authorization.split(' ')[1];
-        if (!authorization || !accessToken || !refreshToken) {
+        if (!accessToken) {
             res.status(401).json({ error: 'Token not provided.' });
             throw new Error('Token not provided.');
         }
