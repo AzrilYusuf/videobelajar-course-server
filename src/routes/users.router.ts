@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import usersController from '../controllers/users.controller';
 import verifyToken from '../middlewares/authMiddleware';
-import protectRoute from '../middlewares/userProtectionMiddleware';
+import protectRoute from '../middlewares/userAuthProtectionMiddleware';
 
 const usersRouter: Router = express.Router();
 

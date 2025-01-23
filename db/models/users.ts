@@ -4,6 +4,7 @@ import {
     InferAttributes,
     InferCreationAttributes,
     DataTypes,
+    ModelStatic,
 } from 'sequelize';
 import sequelizeConnection from './sequelizeConnection';
 import { Role } from '../../src/interfaces/userInterface';
@@ -27,9 +28,11 @@ export default class Users extends Model<
     is_verified?: boolean;
     verification_token?: string;
 
-    // static associate(models: any) {
-    // define association here
-    // }
+    static associate(models: { [key: string]: ModelStatic<Model> }) {
+        this.hasMany(models.authentications, {
+            foreignKey: 'user_id',
+        });
+    }
 }
 
 Users.init(
