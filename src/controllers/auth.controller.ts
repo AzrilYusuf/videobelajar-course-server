@@ -38,44 +38,44 @@ class AuthController {
         try {
             const { email, password }: LoginUser = req.body;
             const existingUser: User | null = await User.findByEmail(email);
-            // If the user is not found
+            //
             if (!existingUser) {
                 res.status(404).json({
-                    error: 'The user is not registered yet.',
+                    error: 'The email or password is invalid.',
                 });
-                throw new Error('The user is not registered yet.');
+                throw new Error('The email or password is invalid.');
             }
 
             const isPasswordValid: boolean = await bcrypt.compare(
                 password,
                 existingUser.password
             );
-            // If the password is not match
+            // If the user is not found or the password is not match
             if (!isPasswordValid) {
-                res.status(401).json({ error: 'The password is invalid.' });
-                throw new Error('The password is invalid.');
+                res.status(404).json({
+                    error: 'The email or password is invalid.',
+                });
+                throw new Error('The email or password is invalid.');
             }
 
-            if (!process.env.ACCESS_TOKEN) {
+            if (!process.env.SECRET_KEY) {
                 throw new Error(
-                    'ACCESS_TOKEN is not defined in environment variables.'
+                    'SECRET_KEY is not defined in environment variables.'
                 );
             }
             const token: string = jwt.sign(
-                { id: existingUser.id },
-                process.env.ACCESS_TOKEN,
-                {
-                    expiresIn: '1h',
-                }
+                { id: existingUser.id, role: existingUser.role },
+                process.env.SECRET_KEY,
+                { expiresIn: '10m' }
             );
 
             // Set cookie
-            res.cookie('token', token, {
-                httpOnly: true, // The cookie only accessible by the web server
-                secure: true, // Send the cookie only via HTTPS
-                sameSite: 'strict', // The cookie is not accessible by third-party
-                maxAge: 60 * 60 * 1000, // The cookie will be removed after 1 hour
-            });
+            // res.cookie('token', refreshToken, {
+            //     httpOnly: true, // The cookie only accessible by the web server
+            //     secure: true, // Send the cookie only via HTTPS
+            //     sameSite: 'strict', // The cookie is not accessible by third-party
+            //     maxAge: 60 * 60 * 1000, // The cookie will be removed after 1 hour
+            // });
 
             res.status(200).json({
                 message: 'The user successfully logged in!',

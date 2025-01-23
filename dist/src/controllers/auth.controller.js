@@ -48,27 +48,21 @@ class AuthController {
                 const existingUser = yield user_model_1.default.findByEmail(email);
                 if (!existingUser) {
                     res.status(404).json({
-                        error: 'The user is not registered yet.',
+                        error: 'The email or password is invalid.',
                     });
-                    throw new Error('The user is not registered yet.');
+                    throw new Error('The email or password is invalid.');
                 }
                 const isPasswordValid = yield bcrypt_1.default.compare(password, existingUser.password);
                 if (!isPasswordValid) {
-                    res.status(401).json({ error: 'The password is invalid.' });
-                    throw new Error('The password is invalid.');
+                    res.status(404).json({
+                        error: 'The email or password is invalid.',
+                    });
+                    throw new Error('The email or password is invalid.');
                 }
-                if (!process.env.ACCESS_TOKEN) {
-                    throw new Error('ACCESS_TOKEN is not defined in environment variables.');
+                if (!process.env.SECRET_KEY) {
+                    throw new Error('SECRET_KEY is not defined in environment variables.');
                 }
-                const token = jsonwebtoken_1.default.sign({ id: existingUser.id }, process.env.ACCESS_TOKEN, {
-                    expiresIn: '1h',
-                });
-                res.cookie('token', token, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'strict',
-                    maxAge: 60 * 60 * 1000,
-                });
+                const token = jsonwebtoken_1.default.sign({ id: existingUser.id, role: existingUser.role }, process.env.SECRET_KEY, { expiresIn: '10m' });
                 res.status(200).json({
                     message: 'The user successfully logged in!',
                     token: token,
