@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
+import { JwtPayload } from 'jsonwebtoken';
+import { RequestWithToken } from '../interfaces/authInterface';
 import { UpdateUser } from 'src/interfaces/userInterface';
 
 class UsersController {
@@ -20,9 +22,9 @@ class UsersController {
         }
     }
 
-    async getUserById(req: Request, res: Response): Promise<void> {
+    async getUserById(req: RequestWithToken, res: Response): Promise<void> {
         try {
-            const id: number = Number(req.params.id);
+            const id: number = (req.token as JwtPayload).id;
             if (!id) {
                 res.status(403).json({ error: 'The request is invalid' });
                 throw new Error('The request is invalid');
@@ -45,9 +47,9 @@ class UsersController {
         }
     }
 
-    async updateUser(req: Request, res: Response): Promise<void> {
+    async updateUser(req: RequestWithToken, res: Response): Promise<void> {
         try {
-            const userId: number = Number(req.params.id);
+            const userId: number = (req.token as JwtPayload).id;
             const dataUser: UpdateUser = req.body;
 
             // The user id is required
@@ -83,9 +85,9 @@ class UsersController {
                 throw new Error('The request is invalid');
             }
 
-            const deletedUser: User | null = await User.deleteUser(userId);
+            const deletedUser: void | null = await User.deleteUser(userId);
             // If the user is not found
-            if (!deletedUser) {
+            if (deletedUser === null) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
             }

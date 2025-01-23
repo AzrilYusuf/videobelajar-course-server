@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_validator_1 = require("express-validator");
-class AuthValidator {
-    static createUserValidator() {
+class Validator {
+    static registerUserValidator() {
         return [
             (0, express_validator_1.body)('fullname')
                 .trim()
@@ -67,6 +67,15 @@ class AuthValidator {
                 .withMessage('Password must contain at least one lowercase letter'),
         ];
     }
+    static updateUserValidator() {
+        return [
+            ...Validator.registerUserValidator(),
+            (0, express_validator_1.body)('picture')
+                .optional()
+                .isString()
+                .withMessage('Picture should be a string'),
+        ];
+    }
 }
-exports.default = AuthValidator;
-//# sourceMappingURL=auth.validator.js.map
+exports.default = Validator;
+//# sourceMappingURL=validator.js.map

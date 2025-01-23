@@ -10,7 +10,7 @@ import {
  * @param context - A string to provide context about where the error occurred
  */
 
-export function handleSequelizeError(
+export default function handleSequelizeError(
     error: unknown,
     context: string = 'Operation'
 ): never {

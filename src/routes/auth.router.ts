@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import AuthValidator from '../validators/auth.validator';
+import Validator from '../validators/validator';
 import validateRequest from '../middlewares/validationMiddleware';
 import authController from '../controllers/auth.controller';
 
@@ -8,7 +8,7 @@ const authRouter: Router = express.Router();
 // Create new user / Sign up user
 authRouter.post(
     '/signup',
-    ...AuthValidator.createUserValidator(),
+    ...Validator.registerUserValidator(),
     validateRequest,
     authController.registerUser
 );
@@ -16,7 +16,7 @@ authRouter.post(
 // Sign in user
 authRouter.post(
     '/signin',
-    ...AuthValidator.loginUserValidator(),
+    ...Validator.loginUserValidator(),
     validateRequest,
     authController.loginUser
 );
