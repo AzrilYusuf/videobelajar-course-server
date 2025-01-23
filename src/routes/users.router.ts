@@ -1,38 +1,41 @@
-import express, { Router } from 'express';
+import express, { Router, RequestHandler } from 'express';
 import usersController from '../controllers/users.controller';
-import verifyToken from '../middlewares/authMiddleware';
-import protectRoute from '../middlewares/userAuthProtectionMiddleware';
+import authenticateUser from '../middlewares/authMiddleware';
+import authorizeAdmin from '../middlewares/authAdminMiddleware';
+import Validator from '../validators/validator';
+import validateRequest from '../middlewares/validationMiddleware';
 
 const usersRouter: Router = express.Router();
 
 // Get all users
 usersRouter.get(
-    '/',
-    verifyToken as express.RequestHandler,
+    '/all-users',
+    authenticateUser as RequestHandler,
+    authorizeAdmin as RequestHandler,
     usersController.getAllUsers
 );
 
 // Get user by id
 usersRouter.get(
-    '/:id',
-    verifyToken as express.RequestHandler,
-    protectRoute as express.RequestHandler,
+    '/',
+    authenticateUser as RequestHandler,
     usersController.getUserById
 );
 
 // Update user
 usersRouter.put(
-    '/:id',
-    verifyToken as express.RequestHandler,
-    protectRoute as express.RequestHandler,
+    '/',
+    authenticateUser as RequestHandler,
+    ...Validator.updateUserValidator(),
+    validateRequest,
     usersController.updateUser
 );
 
 // Delete user
 usersRouter.delete(
     '/:id',
-    verifyToken as express.RequestHandler,
-    protectRoute as express.RequestHandler,
+    authenticateUser as RequestHandler,
+    authorizeAdmin as RequestHandler,
     usersController.deleteUser
 );
 

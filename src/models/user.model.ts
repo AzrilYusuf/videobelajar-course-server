@@ -1,6 +1,6 @@
 import Users from '../../db/models/users';
 import { hash } from 'bcrypt';
-import { handleSequelizeError } from '../utils/sequelizeErrorHandler';
+import handleSequelizeError from '../utils/sequelizeErrorHandler';
 import {
     RegisterUser,
     Role,
@@ -167,15 +167,14 @@ export default class User {
         }
     }
 
-    static async deleteUser(id: number): Promise<User | null> {
+    static async deleteUser(id: number): Promise<void | null> {
         try {
             const existingUser: Users | null = await Users.findByPk(id);
             if (!existingUser) {
                 return null;
             }
 
-            await Users.destroy({ where: { id } });
-            return new User(existingUser);
+            await Users.destroy({ where: { id: existingUser.id } });
         } catch (error) {
             handleSequelizeError(error, 'Deleting user');
         }

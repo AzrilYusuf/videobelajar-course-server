@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleSequelizeError = handleSequelizeError;
+exports.default = handleSequelizeError;
 const sequelize_1 = require("sequelize");
 function handleSequelizeError(error, context = 'Operation') {
     if (error instanceof sequelize_1.ValidationError) {

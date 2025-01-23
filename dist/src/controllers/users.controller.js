@@ -35,7 +35,7 @@ class UsersController {
     getUserById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const id = Number(req.params.id);
+                const id = req.token.id;
                 if (!id) {
                     res.status(403).json({ error: 'The request is invalid' });
                     throw new Error('The request is invalid');
@@ -58,7 +58,7 @@ class UsersController {
     updateUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = Number(req.params.id);
+                const userId = req.token.id;
                 const dataUser = req.body;
                 if (!userId) {
                     res.status(403).json({ error: 'The request is invalid' });
@@ -88,7 +88,7 @@ class UsersController {
                     throw new Error('The request is invalid');
                 }
                 const deletedUser = yield user_model_1.default.deleteUser(userId);
-                if (!deletedUser) {
+                if (deletedUser === null) {
                     res.status(404).json({ error: 'The user is not found.' });
                     throw new Error('The user is not found.');
                 }
