@@ -3,6 +3,7 @@ import { hash } from 'bcrypt';
 import { handleSequelizeError } from '../utils/sequelizeErrorHandler';
 import {
     RegisterUser,
+    Role,
     UpdateUser,
     UserConstructor,
 } from '../interfaces/userInterface';
@@ -13,6 +14,10 @@ export default class User {
     private email: string;
     private phone_number: string;
     public password: string;
+    private picture?: string;
+    public role: Role;
+    public is_verified?: boolean;
+    private verification_token?: string;
 
     constructor(user: UserConstructor) {
         if (user) {
@@ -21,6 +26,10 @@ export default class User {
             this.email = user.email;
             this.phone_number = user.phone_number;
             this.password = user.password;
+            this.picture = user.picture;
+            this.role = user.role;
+            this.is_verified = user.is_verified;
+            this.verification_token = user.verification_token;
         }
     }
 
@@ -42,6 +51,10 @@ export default class User {
                         email: this.email,
                         phone_number: this.phone_number,
                         password: this.password,
+                        picture: this.picture,
+                        role: this.role,
+                        is_verified: this.is_verified,
+                        verification_token: this.verification_token,
                     },
                     {
                         where: { id: this.id },
@@ -60,6 +73,7 @@ export default class User {
                         email: this.email,
                         phone_number: this.phone_number,
                         password: this.password,
+                        role: this.role,
                     },
                     {
                         returning: true,
@@ -74,18 +88,18 @@ export default class User {
 
     // ** Create a new user (Sign up)
     static async createNewUser(
-        user: RegisterUser
+        userData: RegisterUser
     ): Promise<User | string | null> {
         try {
             // Check if the user already exists
             const existingUser: User | null = await User.findByEmail(
-                user.email
+                userData.email
             );
             if (existingUser) {
                 return existingUser.email;
             }
 
-            const newUser: User = new User(user);
+            const newUser: User = new User(userData);
             return await newUser.save(); // Save new user to the database
         } catch (error) {
             handleSequelizeError(error, 'Creating new user');
@@ -109,13 +123,13 @@ export default class User {
     // ** Find a user by id
     static async findUserById(id: number): Promise<User | null> {
         try {
-            const user: Users | null = await Users.findByPk(id, {
+            const existingUser: Users | null = await Users.findByPk(id, {
                 attributes: {
                     exclude: ['password'],
                 },
             });
-            if (!user) return null;
-            return new User(user);
+            if (!existingUser) return null;
+            return new User(existingUser);
         } catch (error) {
             handleSequelizeError(error, 'Finding user by id');
         }
@@ -124,13 +138,13 @@ export default class User {
     // ** Find a user by email
     static async findByEmail(email: string): Promise<User | null> {
         try {
-            const results: Users | null = await Users.findOne({
+            const existingUser: Users | null = await Users.findOne({
                 where: {
                     email: email,
                 },
             });
-            if (!results) return null;
-            return new User(results);
+            if (!existingUser) return null;
+            return new User(existingUser);
         } catch (error) {
             handleSequelizeError(error, 'Finding user by email');
         }

@@ -33,6 +33,25 @@ Users.init({
         allowNull: false,
         type: sequelize_1.DataTypes.STRING(255),
     },
+    picture: {
+        allowNull: true,
+        type: sequelize_1.DataTypes.STRING(255),
+    },
+    role: {
+        allowNull: false,
+        type: sequelize_1.DataTypes.ENUM,
+        values: ['Admin', 'User'],
+        defaultValue: 'User',
+    },
+    is_verified: {
+        allowNull: false,
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    verification_token: {
+        allowNull: true,
+        type: sequelize_1.DataTypes.STRING(255),
+    },
 }, {
     sequelize: sequelizeConnection_1.default,
     modelName: 'users',

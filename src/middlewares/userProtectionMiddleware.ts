@@ -11,8 +11,6 @@ const protectRoute = (
         // Extract token from request object
         const token: string | JwtPayload = req.token as { id: string };
         const { id }: { id: string } = req.params as { id: string };
-        console.log(token.id);
-        console.log(id);
 
         if (token.id != id) {
             res.status(403).json({

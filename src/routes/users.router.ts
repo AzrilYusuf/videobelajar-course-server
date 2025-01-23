@@ -1,21 +1,21 @@
 import express, { Router } from 'express';
 import usersController from '../controllers/users.controller';
-import verifyTokenFromCookie from '../middlewares/authMiddleware';
-import protectRoute from '../middlewares/protectionMiddleware';
+import verifyToken from '../middlewares/authMiddleware';
+import protectRoute from '../middlewares/userProtectionMiddleware';
 
 const usersRouter: Router = express.Router();
 
 // Get all users
 usersRouter.get(
     '/',
-    verifyTokenFromCookie as express.RequestHandler,
+    verifyToken as express.RequestHandler,
     usersController.getAllUsers
 );
 
 // Get user by id
 usersRouter.get(
     '/:id',
-    verifyTokenFromCookie as express.RequestHandler,
+    verifyToken as express.RequestHandler,
     protectRoute as express.RequestHandler,
     usersController.getUserById
 );
@@ -23,7 +23,7 @@ usersRouter.get(
 // Update user
 usersRouter.put(
     '/:id',
-    verifyTokenFromCookie as express.RequestHandler,
+    verifyToken as express.RequestHandler,
     protectRoute as express.RequestHandler,
     usersController.updateUser
 );
@@ -31,7 +31,7 @@ usersRouter.put(
 // Delete user
 usersRouter.delete(
     '/:id',
-    verifyTokenFromCookie as express.RequestHandler,
+    verifyToken as express.RequestHandler,
     protectRoute as express.RequestHandler,
     usersController.deleteUser
 );
