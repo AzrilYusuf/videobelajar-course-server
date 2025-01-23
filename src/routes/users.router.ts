@@ -1,4 +1,4 @@
-import express, { Router, RequestHandler } from 'express';
+import express, { Router } from 'express';
 import usersController from '../controllers/users.controller';
 import authenticateUser from '../middlewares/authMiddleware';
 import authorizeAdmin from '../middlewares/authAdminMiddleware';
@@ -10,22 +10,22 @@ const usersRouter: Router = express.Router();
 // Get all users
 usersRouter.get(
     '/all-users',
-    authenticateUser as RequestHandler,
-    authorizeAdmin as RequestHandler,
+    authenticateUser,
+    authorizeAdmin,
     usersController.getAllUsers
 );
 
 // Get user by id
 usersRouter.get(
     '/',
-    authenticateUser as RequestHandler,
+    authenticateUser,
     usersController.getUserById
 );
 
 // Update user
 usersRouter.put(
     '/',
-    authenticateUser as RequestHandler,
+    authenticateUser,
     ...Validator.updateUserValidator(),
     validateRequest,
     usersController.updateUser
@@ -34,8 +34,8 @@ usersRouter.put(
 // Delete user
 usersRouter.delete(
     '/:id',
-    authenticateUser as RequestHandler,
-    authorizeAdmin as RequestHandler,
+    authenticateUser,
+    authorizeAdmin,
     usersController.deleteUser
 );
 

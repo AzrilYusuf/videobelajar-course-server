@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import authenticateUser from '../middlewares/authMiddleware';
 import Validator from '../validators/validator';
 import validateRequest from '../middlewares/validationMiddleware';
 import authController from '../controllers/auth.controller';
@@ -18,7 +19,10 @@ authRouter.post(
     '/signin',
     ...Validator.loginUserValidator(),
     validateRequest,
-    authController.loginUser
+    authController.logInUser
 );
+
+// Sign out user
+authRouter.post('/signout', authenticateUser, authController.logOutUser);
 
 export default authRouter;

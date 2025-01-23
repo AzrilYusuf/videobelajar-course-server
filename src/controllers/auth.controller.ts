@@ -4,6 +4,8 @@ import Auth from '../models/auth.model';
 import bcrypt from 'bcrypt';
 import generateToken from '../utils/generateToken';
 import { LoginUser, RegisterUser } from '../interfaces/userInterface';
+import { RequestWithToken } from '../interfaces/authInterface';
+import decodeToken from '../utils/decodeToken';
 
 class AuthController {
     async registerUser(req: Request, res: Response): Promise<void> {
@@ -35,12 +37,12 @@ class AuthController {
         }
     }
 
-    async loginUser(req: Request, res: Response): Promise<void> {
+    async logInUser(req: Request, res: Response): Promise<void> {
         try {
             const { email, password }: LoginUser = req.body;
             const tokenFromCookie: string = req.cookies.token;
             const existingUser: User | null = await User.findByEmail(email);
-            
+
             // If the user is not found or the password is not match
             if (!existingUser) {
                 res.status(404).json({
@@ -54,7 +56,7 @@ class AuthController {
                 password,
                 existingUser.password
             );
-            
+
             // If the user is not found or the password is not match
             if (!isPasswordValid) {
                 res.status(404).json({
@@ -101,6 +103,38 @@ class AuthController {
             res.status(200).json({
                 message: 'The user successfully logged in!',
                 accessToken,
+            });
+        } catch (error) {
+            console.error(`${error}`);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
+    async logOutUser(req: RequestWithToken, res: Response): Promise<void> {
+        try {
+            const refreshToken: string = req.cookies.token;
+            if (!refreshToken) {
+                res.status(204);
+            }
+
+            const decodedRefreshToken = decodeToken(
+                refreshToken,
+                process.env.REFRESH_TOKEN_SECRET_KEY!
+            );
+
+            // Delete the refresh token from the database
+            await Auth.deleteRefreshToken(decodedRefreshToken.id);
+
+            // Delete the refresh token from the cookies
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+            });
+            res.status(204).json({
+                message: 'The user successfully logged out!',
             });
         } catch (error) {
             console.error(`${error}`);
