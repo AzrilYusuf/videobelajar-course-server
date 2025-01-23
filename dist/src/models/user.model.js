@@ -23,6 +23,10 @@ class User {
             this.email = user.email;
             this.phone_number = user.phone_number;
             this.password = user.password;
+            this.picture = user.picture;
+            this.role = user.role;
+            this.is_verified = user.is_verified;
+            this.verification_token = user.verification_token;
         }
     }
     save() {
@@ -37,6 +41,10 @@ class User {
                         email: this.email,
                         phone_number: this.phone_number,
                         password: this.password,
+                        picture: this.picture,
+                        role: this.role,
+                        is_verified: this.is_verified,
+                        verification_token: this.verification_token,
                     }, {
                         where: { id: this.id },
                         returning: true,
@@ -52,6 +60,7 @@ class User {
                         email: this.email,
                         phone_number: this.phone_number,
                         password: this.password,
+                        role: this.role,
                     }, {
                         returning: true,
                     });
@@ -63,14 +72,14 @@ class User {
             }
         });
     }
-    static createNewUser(user) {
+    static createNewUser(userData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const existingUser = yield User.findByEmail(user.email);
+                const existingUser = yield User.findByEmail(userData.email);
                 if (existingUser) {
                     return existingUser.email;
                 }
-                const newUser = new User(user);
+                const newUser = new User(userData);
                 return yield newUser.save();
             }
             catch (error) {
@@ -96,14 +105,14 @@ class User {
     static findUserById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield users_1.default.findByPk(id, {
+                const existingUser = yield users_1.default.findByPk(id, {
                     attributes: {
                         exclude: ['password'],
                     },
                 });
-                if (!user)
+                if (!existingUser)
                     return null;
-                return new User(user);
+                return new User(existingUser);
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by id');
@@ -113,14 +122,14 @@ class User {
     static findByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const results = yield users_1.default.findOne({
+                const existingUser = yield users_1.default.findOne({
                     where: {
                         email: email,
                     },
                 });
-                if (!results)
+                if (!existingUser)
                     return null;
-                return new User(results);
+                return new User(existingUser);
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by email');

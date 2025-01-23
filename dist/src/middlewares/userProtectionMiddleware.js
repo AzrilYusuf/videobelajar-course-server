@@ -18,4 +18,4 @@ const protectRoute = (req, res, next) => {
     }
 };
 exports.default = protectRoute;
-//# sourceMappingURL=protectionMiddleware.js.map
+//# sourceMappingURL=userProtectionMiddleware.js.map
