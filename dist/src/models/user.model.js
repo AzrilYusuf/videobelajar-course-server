@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const users_1 = __importDefault(require("../../db/models/users"));
 const bcrypt_1 = require("bcrypt");
-const sequelizeErrorHandler_1 = require("../utils/sequelizeErrorHandler");
+const sequelizeErrorHandler_1 = __importDefault(require("../utils/sequelizeErrorHandler"));
 class User {
     constructor(user) {
         if (user) {
@@ -68,7 +68,7 @@ class User {
                 }
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Saving user to database');
+                (0, sequelizeErrorHandler_1.default)(error, 'Saving user to database');
             }
         });
     }
@@ -83,7 +83,7 @@ class User {
                 return yield newUser.save();
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Creating new user');
+                (0, sequelizeErrorHandler_1.default)(error, 'Creating new user');
             }
         });
     }
@@ -98,7 +98,7 @@ class User {
                 return users.map((user) => new User(user));
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding all users');
+                (0, sequelizeErrorHandler_1.default)(error, 'Finding all users');
             }
         });
     }
@@ -115,7 +115,7 @@ class User {
                 return new User(existingUser);
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by id');
+                (0, sequelizeErrorHandler_1.default)(error, 'Finding user by id');
             }
         });
     }
@@ -132,7 +132,7 @@ class User {
                 return new User(existingUser);
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Finding user by email');
+                (0, sequelizeErrorHandler_1.default)(error, 'Finding user by email');
             }
         });
     }
@@ -147,7 +147,7 @@ class User {
                 return yield updatedUser.save();
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Updating user');
+                (0, sequelizeErrorHandler_1.default)(error, 'Updating user');
             }
         });
     }
@@ -158,11 +158,10 @@ class User {
                 if (!existingUser) {
                     return null;
                 }
-                yield users_1.default.destroy({ where: { id } });
-                return new User(existingUser);
+                yield users_1.default.destroy({ where: { id: existingUser.id } });
             }
             catch (error) {
-                (0, sequelizeErrorHandler_1.handleSequelizeError)(error, 'Deleting user');
+                (0, sequelizeErrorHandler_1.default)(error, 'Deleting user');
             }
         });
     }

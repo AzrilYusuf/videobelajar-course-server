@@ -1,7 +1,7 @@
 import { body, ValidationChain } from 'express-validator';
 
-export default class AuthValidator {
-    static createUserValidator(): ValidationChain[] {
+export default class Validator {
+    static registerUserValidator(): ValidationChain[] {
         return [
             body('fullname')
                 .trim()
@@ -47,6 +47,14 @@ export default class AuthValidator {
                 .withMessage(
                     'Password must contain at least one lowercase letter'
                 ),
+
+            body('role')
+                .notEmpty()
+                .withMessage('Role is required')
+                .isString()
+                .withMessage('Role should be a letter, alphabet or character')
+                .isIn(['Admin', 'User'])
+                .withMessage('Role must be either Admin or User'),
         ];
     }
 
@@ -74,6 +82,16 @@ export default class AuthValidator {
                 .withMessage(
                     'Password must contain at least one lowercase letter'
                 ),
+        ];
+    }
+
+    static updateUserValidator(): ValidationChain[] {
+        return [
+            ...Validator.registerUserValidator(),
+            body('picture')
+                .optional()
+                .isString()
+                .withMessage('Picture should be a string'),
         ];
     }
 }

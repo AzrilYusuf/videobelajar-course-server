@@ -58,5 +58,6 @@ Authentications.init(
         sequelize: sequelizeConnection,
         modelName: 'authentications',
         createdAt: 'created_at',
+        updatedAt: false, // Disable `updatedAt`
     }
 );

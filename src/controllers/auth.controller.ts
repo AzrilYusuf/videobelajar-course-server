@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
+import Auth from '../models/auth.model';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { LoginUser, RegisterUser } from 'src/interfaces/userInterface';
+import generateToken from '../utils/generateToken';
+import { LoginUser, RegisterUser } from '../interfaces/userInterface';
 
 class AuthController {
     async registerUser(req: Request, res: Response): Promise<void> {
@@ -37,8 +38,10 @@ class AuthController {
     async loginUser(req: Request, res: Response): Promise<void> {
         try {
             const { email, password }: LoginUser = req.body;
+            const tokenFromCookie: string = req.cookies.token;
             const existingUser: User | null = await User.findByEmail(email);
-            //
+            
+            // If the user is not found or the password is not match
             if (!existingUser) {
                 res.status(404).json({
                     error: 'The email or password is invalid.',
@@ -46,10 +49,12 @@ class AuthController {
                 throw new Error('The email or password is invalid.');
             }
 
+            // Compare password with the one stored in the database
             const isPasswordValid: boolean = await bcrypt.compare(
                 password,
                 existingUser.password
             );
+            
             // If the user is not found or the password is not match
             if (!isPasswordValid) {
                 res.status(404).json({
@@ -58,28 +63,44 @@ class AuthController {
                 throw new Error('The email or password is invalid.');
             }
 
-            if (!process.env.SECRET_KEY) {
-                throw new Error(
-                    'SECRET_KEY is not defined in environment variables.'
-                );
+            // * Automatically delete the expired refresh token if it exists
+            await Auth.deleteExpiredRefreshToken(existingUser.id!);
+
+            // * Delete the refresh token if the user already has it
+            // * in both database and cookies
+            if (tokenFromCookie) {
+                Auth.deleteRefreshToken(existingUser.id!);
             }
-            const token: string = jwt.sign(
-                { id: existingUser.id, role: existingUser.role },
-                process.env.SECRET_KEY,
-                { expiresIn: '10m' }
-            );
+
+            // Generate access token and refresh token
+            const accessToken: string = generateToken({
+                id: existingUser.id!,
+                role: existingUser.role,
+                SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY!,
+                expiresIn: '10m',
+            });
+
+            const refreshToken: string = generateToken({
+                id: existingUser.id!,
+                role: existingUser.role,
+                SECRET_KEY: process.env.REFRESH_TOKEN_SECRET_KEY!,
+                expiresIn: '30d',
+            });
+
+            // Save refresh token to the database
+            await Auth.storeRefreshToken(existingUser.id!, refreshToken);
 
             // Set cookie
-            // res.cookie('token', refreshToken, {
-            //     httpOnly: true, // The cookie only accessible by the web server
-            //     secure: true, // Send the cookie only via HTTPS
-            //     sameSite: 'strict', // The cookie is not accessible by third-party
-            //     maxAge: 60 * 60 * 1000, // The cookie will be removed after 1 hour
-            // });
+            res.cookie('token', refreshToken, {
+                httpOnly: true, // The cookie only accessible by the web server
+                secure: true, // Send the cookie only via HTTPS
+                sameSite: 'strict', // The cookie is not accessible by third-party
+                maxAge: 60 * 60 * 24 * 30 * 1000, // The cookie will be removed after 30 days
+            });
 
             res.status(200).json({
                 message: 'The user successfully logged in!',
-                token: token,
+                accessToken,
             });
         } catch (error) {
             console.error(`${error}`);
