@@ -6,5 +6,5 @@ export default function generateToken(payload: TokenPayload): string {
         { id: payload.id, role: payload.role }, // payload data
         payload.SECRET_KEY!, // secret key
         { expiresIn: payload.expiresIn } // expiration time
-    )
-} 
+    );
+}

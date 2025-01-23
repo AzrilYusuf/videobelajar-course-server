@@ -16,6 +16,7 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 const auth_model_1 = __importDefault(require("../models/auth.model"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
+const decodeToken_1 = __importDefault(require("../utils/decodeToken"));
 class AuthController {
     registerUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -42,7 +43,7 @@ class AuthController {
             }
         });
     }
-    loginUser(req, res) {
+    logInUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { email, password } = req.body;
@@ -87,6 +88,32 @@ class AuthController {
                 res.status(200).json({
                     message: 'The user successfully logged in!',
                     accessToken,
+                });
+            }
+            catch (error) {
+                console.error(`${error}`);
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
+            }
+        });
+    }
+    logOutUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const refreshToken = req.cookies.token;
+                if (!refreshToken) {
+                    res.status(204);
+                }
+                const decodedRefreshToken = (0, decodeToken_1.default)(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
+                yield auth_model_1.default.deleteRefreshToken(decodedRefreshToken.id);
+                res.clearCookie('token', {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                });
+                res.status(204).json({
+                    message: 'The user successfully logged out!',
                 });
             }
             catch (error) {

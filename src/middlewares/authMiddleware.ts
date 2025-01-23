@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
+import decodeToken from '../utils/decodeToken';
 import { RequestWithToken } from '../interfaces/authInterface';
 
 // TODO: Authenticate and authorize user
@@ -13,14 +14,12 @@ const authenticateUser = (
         const refreshToken: string = req.cookies.token;
         const { authorization }: { authorization?: string } = req.headers;
 
-        const accessToken: string | undefined = authorization!.split(' ')[1];
+        const accessToken: string = authorization!.split(' ')[1];
         // Check if the token is provided
         if (!authorization || !accessToken || !refreshToken) {
             res.status(401).json({ error: 'Token not provided.' });
             throw new Error('Token not provided.');
         }
-        console.log(`access token: ${accessToken}`);
-        console.log(`refresh token: ${refreshToken}`);
 
         // Check if the token is in the correct format
         if (authorization!.split(' ')[0] !== 'Bearer') {
@@ -28,20 +27,20 @@ const authenticateUser = (
             throw new Error('Invalid token type.');
         }
 
-        const decodedAccessToken: string | JwtPayload = jwt.verify(
+        const decodedAccessToken: JwtPayload = decodeToken(
             accessToken,
             process.env.ACCESS_TOKEN_SECRET_KEY!
         );
 
-        const decodedRefreshToken: string | JwtPayload = jwt.verify(
+        const decodedRefreshToken: JwtPayload = decodeToken(
             refreshToken,
             process.env.REFRESH_TOKEN_SECRET_KEY!
         );
 
         //** Check if the role is Admin then proceed to the next middleware or route handler
         if (
-            (decodedAccessToken as JwtPayload).role === 'Admin' &&
-            (decodedRefreshToken as JwtPayload).role === 'Admin'
+            decodedAccessToken.role === 'Admin' &&
+            decodedRefreshToken.role === 'Admin'
         ) {
             req.token = decodedAccessToken; // TODO: Attach token to the request object
             next(); // TODO: Proceed to the next middleware or route handler
@@ -50,10 +49,10 @@ const authenticateUser = (
         //** Type casting is used to access the id property only if the variable is an object(JwtPayload)
         //** The other way is use question mark (?)
         if (
-            (decodedAccessToken as JwtPayload).id !==
-                (decodedRefreshToken as JwtPayload).id ||
-            (decodedAccessToken as JwtPayload).role !==
-                (decodedRefreshToken as JwtPayload).role
+            decodedAccessToken.id !==
+                decodedRefreshToken.id ||
+            decodedAccessToken.role !==
+                decodedRefreshToken.role
         ) {
             res.status(403).json({
                 error: 'You are not authorized to access this method.',
