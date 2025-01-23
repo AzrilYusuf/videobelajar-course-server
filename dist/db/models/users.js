@@ -6,6 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const sequelizeConnection_1 = __importDefault(require("./sequelizeConnection"));
 class Users extends sequelize_1.Model {
+    static associate(models) {
+        this.hasMany(models.authentications, {
+            foreignKey: 'user_id',
+        });
+    }
 }
 exports.default = Users;
 Users.init({
