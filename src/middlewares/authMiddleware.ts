@@ -14,9 +14,13 @@ const authenticateUser = (
         const refreshToken: string = req.cookies.token;
         const { authorization }: { authorization?: string } = req.headers;
 
-        const accessToken: string = authorization!.split(' ')[1];
         // Check if the token is provided
-        if (!authorization || !accessToken || !refreshToken) {
+        if (!authorization || !refreshToken) {
+            res.status(401).json({ error: 'Token not provided.' });
+            throw new Error('Token not provided.');
+        }
+        const accessToken: string = authorization!.split(' ')[1];
+        if (!accessToken) {
             res.status(401).json({ error: 'Token not provided.' });
             throw new Error('Token not provided.');
         }
