@@ -10,14 +10,14 @@ import {
 
 export default class User {
     public id?: number;
-    private fullname: string;
-    private email: string;
+    public fullname: string;
+    public email: string;
     private phone_number: string;
     public password: string;
     private picture?: string;
     public role?: Role;
     public is_verified?: boolean;
-    private verification_token?: string;
+    public verification_token?: string;
 
     constructor(user: UserConstructor) {
         if (user) {
@@ -32,10 +32,11 @@ export default class User {
             this.verification_token = user.verification_token;
         }
     }
-
+    
     //** Save user information to database (update and create)
     async save(): Promise<User | null> {
         try {
+            // Hash password before saving to the database
             if (this.password) {
                 this.password = await hash(this.password!, 10);
             }
@@ -67,6 +68,7 @@ export default class User {
                 return new User(results[0]);
                 //* Create new user
             } else {
+
                 const results: Users = await Users.create(
                     {
                         fullname: this.fullname,
@@ -74,6 +76,7 @@ export default class User {
                         phone_number: this.phone_number,
                         password: this.password,
                         role: this.role!,
+                        verification_token: this.verification_token,
                     },
                     {
                         returning: true,
@@ -89,21 +92,50 @@ export default class User {
     // ** Create a new user (Sign up)
     static async createNewUser(
         userData: RegisterUser,
-        roleParam: Role
-    ): Promise<User | string | null> {
+        roleParam: Role,
+        verificationToken: string
+    ): Promise<User | string | boolean | null> {
         try {
             // Check if the user already exists
             const existingUser: User | null = await User.findByEmail(
                 userData.email
             );
-            if (existingUser) {
+
+            if (existingUser?.is_verified === false) {
+                return existingUser.is_verified;
+            }
+
+            if (existingUser?.is_verified === true || existingUser) {
                 return existingUser.email;
             }
 
-            const newUser: User = new User({ role: roleParam, ...userData });
+            const newUser: User = new User({
+                role: roleParam,
+                verification_token: verificationToken,
+                ...userData,
+            });
             return await newUser.save(); // Save new user to the database
         } catch (error) {
             handleSequelizeError(error, 'Creating new user');
+        }
+    }
+
+    static async verifyEmail(id: number, token: string): Promise<User | null> {
+        try {
+            const existedUser: Users | null = await Users.findByPk(id);
+            if (!existedUser) {
+                return null;
+            }
+            if (existedUser.verification_token !== token) {
+                return null;
+            }
+            existedUser.is_verified = true;
+            existedUser.verification_token = '';
+            existedUser.save();
+            return new User(existedUser);
+        } catch (error) {
+            handleSequelizeError(error, 'Verifying email');
+            
         }
     }
 
