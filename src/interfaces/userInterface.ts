@@ -10,7 +10,7 @@ export interface UserConstructor {
     phone_number: string;
     password: string;
     picture?: string;
-    role: Role;
+    role?: Role;
     is_verified?: boolean;
     verification_token?: string;
 }
@@ -20,7 +20,14 @@ export interface RegisterUser {
     email: string;
     phone_number: string;
     password: string;
-    role: Role;
+}
+
+export interface RegisterAdmin {
+    fullname: string;
+    email: string;
+    phone_number: string;
+    password: string;
+    privilege_key: string;
 }
 
 export interface LoginUser {
@@ -34,7 +41,6 @@ export interface UpdateUser {
     phone_number: string;
     password: string;
     picture?: string;
-    role: Role;
     is_verified?: boolean;
     verification_token?: string;
 }

@@ -72,14 +72,14 @@ class User {
             }
         });
     }
-    static createNewUser(userData) {
+    static createNewUser(userData, roleParam) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existingUser = yield User.findByEmail(userData.email);
                 if (existingUser) {
                     return existingUser.email;
                 }
-                const newUser = new User(userData);
+                const newUser = new User(Object.assign({ role: roleParam }, userData));
                 return yield newUser.save();
             }
             catch (error) {
