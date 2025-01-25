@@ -11,6 +11,7 @@ const auth_controller_1 = __importDefault(require("../controllers/auth.controlle
 const authRouter = express_1.default.Router();
 authRouter.post('/signup/user', ...validator_1.default.registerUserValidator(), validationMiddleware_1.default, auth_controller_1.default.registerUser);
 authRouter.post('/signup/admin', ...validator_1.default.registerAdminValidator(), validationMiddleware_1.default, auth_controller_1.default.registerAdmin);
+authRouter.get('/verify-email', auth_controller_1.default.verifyEmail);
 authRouter.post('/signin', ...validator_1.default.loginUserValidator(), validationMiddleware_1.default, auth_controller_1.default.logInUser);
 authRouter.post('/signout', authMiddleware_1.default, auth_controller_1.default.logOutUser);
 exports.default = authRouter;

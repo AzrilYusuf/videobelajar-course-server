@@ -61,6 +61,7 @@ class User {
                         phone_number: this.phone_number,
                         password: this.password,
                         role: this.role,
+                        verification_token: this.verification_token,
                     }, {
                         returning: true,
                     });
@@ -72,18 +73,41 @@ class User {
             }
         });
     }
-    static createNewUser(userData, roleParam) {
+    static createNewUser(userData, roleParam, verificationToken) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existingUser = yield User.findByEmail(userData.email);
-                if (existingUser) {
+                if ((existingUser === null || existingUser === void 0 ? void 0 : existingUser.is_verified) === false) {
+                    return existingUser.is_verified;
+                }
+                if ((existingUser === null || existingUser === void 0 ? void 0 : existingUser.is_verified) === true || existingUser) {
                     return existingUser.email;
                 }
-                const newUser = new User(Object.assign({ role: roleParam }, userData));
+                const newUser = new User(Object.assign({ role: roleParam, verification_token: verificationToken }, userData));
                 return yield newUser.save();
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.default)(error, 'Creating new user');
+            }
+        });
+    }
+    static verifyEmail(id, token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existedUser = yield users_1.default.findByPk(id);
+                if (!existedUser) {
+                    return null;
+                }
+                if (existedUser.verification_token !== token) {
+                    return null;
+                }
+                existedUser.is_verified = true;
+                existedUser.verification_token = '';
+                existedUser.save();
+                return new User(existedUser);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.default)(error, 'Verifying email');
             }
         });
     }

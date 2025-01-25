@@ -1,19 +1,39 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import Auth from '../models/auth.model';
-import bcrypt from 'bcrypt';
+import { compare } from 'bcrypt';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import generateToken from '../utils/generateToken';
-import { LoginUser, RegisterAdmin, RegisterUser, Role } from '../interfaces/userInterface';
-import { RequestWithToken } from '../interfaces/authInterface';
 import decodeToken from '../utils/decodeToken';
+import generateVerificationToken from '../utils/generateVerificationToken';
+import transporter from '../utils/nodemailer';
+import {
+    LoginUser,
+    RegisterAdmin,
+    RegisterUser,
+    Role,
+} from '../interfaces/userInterface';
+import { RequestWithToken } from '../interfaces/authInterface';
 
 class AuthController {
     // Register a new user
     async registerUser(req: Request, res: Response): Promise<void> {
         try {
             const userData: RegisterUser = req.body;
-            const createdUser: User | string | null =
-                await User.createNewUser(userData, Role.User);
+            const verificationToken: string = generateVerificationToken();
+            const createdUser: User | string | boolean | null =
+                await User.createNewUser(
+                    userData,
+                    Role.User,
+                    verificationToken
+                );
+
+            // If the user already exists but not verified
+            if (typeof createdUser === 'boolean') {
+                res.status(400).json({
+                    error: 'The user already exists, but not verified, please verify your email.',
+                });
+            }
 
             // If the user already exists
             if (typeof createdUser === 'string') {
@@ -29,7 +49,39 @@ class AuthController {
                 throw new Error('The user is not created.');
             }
 
-            res.status(201).json({ message: 'The user successfully created!' });
+            const verificationUrl: string = `${
+                process.env.SERVER_DOMAIN
+                    ? `https://${process.env.SERVER_DOMAIN}`
+                    : `http://localhost:${process.env.SERVER_PORT} || 3000`
+            }/verify-email?token=${verificationToken}&id=${(createdUser as User).id}`;
+
+            // Send verification email
+            const emailInfo: SMTPTransport.SentMessageInfo =
+                await transporter.sendMail({
+                    from: 'Videobelajar Course',
+                    to: (createdUser as User).email,
+                    subject: 'Email Verification',
+                    html: `
+                    <h1>Hi, ${(createdUser as User).fullname}</h1>
+                    Please click the link below to verify your email: 
+                    <a href="${verificationUrl}">Verify Email</a>
+                `,
+                });
+
+            // If the email is not sent or an error is encountered
+            if (!emailInfo.messageId) {
+                res.status(500).json({
+                    error: `An error occurred while sending the email.
+                    ${emailInfo.rejected}`,
+                });
+                throw new Error('An error occurred while sending the email.');
+            }
+
+            res.status(201).json({
+                message: `The user successfully created!
+                We have sent a verification email to ${(createdUser as User).email}. Please verify your email.
+            `,
+            });
         } catch (error) {
             console.error(`${error}`);
             res.status(500).json({
@@ -41,6 +93,7 @@ class AuthController {
     async registerAdmin(req: Request, res: Response): Promise<void> {
         try {
             const userData: RegisterAdmin = req.body;
+
             if (userData.privilege_key !== process.env.PRIVILEGE_KEY) {
                 res.status(400).json({
                     error: 'The privilege key is invalid.',
@@ -48,8 +101,20 @@ class AuthController {
                 throw new Error('The privilege key is invalid.');
             }
 
-            const createdUser: User | string | null =
-                await User.createNewUser(userData, Role.Admin);
+            const verificationToken: string = generateVerificationToken();
+            const createdUser: User | string | boolean | null =
+                await User.createNewUser(
+                    userData,
+                    Role.Admin,
+                    verificationToken
+                );
+
+            // If the user already exists but not verified
+            if (typeof createdUser === 'boolean') {
+                res.status(400).json({
+                    error: 'The user already exists, but not verified, please verify your email.',
+                });
+            }
 
             // If the user already exists
             if (typeof createdUser === 'string') {
@@ -65,7 +130,73 @@ class AuthController {
                 throw new Error('The admin is not created.');
             }
 
-            res.status(201).json({ message: 'The admin successfully created!' });
+            const verificationUrl: string = `${
+                process.env.SERVER_DOMAIN
+                    ? `https://${process.env.SERVER_DOMAIN}`
+                    : `http://localhost:${process.env.SERVER_PORT || 3000}`
+            }/verify-email?token=${verificationToken}&id=${(createdUser as User).id}`;
+
+            // Send verification email
+            const emailInfo: SMTPTransport.SentMessageInfo =
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: (createdUser as User).email,
+                    subject: 'Email Verification',
+                    html: `
+                <h1>Hi, ${(createdUser as User).fullname}</h1>
+                Please click the link below to verify your email: 
+                <a href="${verificationUrl}">Verify Email</a>
+                `,
+                });
+
+            // If the email is not sent or an error is encountered
+            if (!emailInfo.messageId) {
+                res.status(500).json({
+                    error: `An error occurred while sending the email.
+                    ${emailInfo.rejected}`,
+                });
+                throw new Error('An error occurred while sending the email.');
+            }
+
+            res.status(201).json({
+                message: `The admin successfully created!
+                We have sent a verification email to ${(createdUser as User).email}. Please verify your email.
+            `,
+            });
+        } catch (error) {
+            console.error(`${error}`);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
+    async verifyEmail(req: Request, res: Response): Promise<void> {
+        try {
+            const { token, id } = req.query;
+            if (!token || !id) {
+                res.status(400).json({
+                    error: 'Missing token or id.',
+                });
+                throw new Error('Missing token or id.');
+            }
+
+            const verifiedUser = await User.verifyEmail(
+                Number(id),
+                String(token)
+            );
+
+            // If the user is not found or the token is invalid
+            if (!verifiedUser) {
+                res.status(400).json({
+                    error: 'The token or id is invalid.',
+                });
+                throw new Error('The token or id is invalid.');
+            }
+
+            res.status(200).json({
+                message: 'The email is verified. Please sign in.',
+            });
         } catch (error) {
             console.error(`${error}`);
             res.status(500).json({
@@ -80,7 +211,7 @@ class AuthController {
             const tokenFromCookie: string = req.cookies.token;
             const existingUser: User | null = await User.findByEmail(email);
 
-            // If the user is not found or the password is not match
+            // If the user is not found
             if (!existingUser) {
                 res.status(404).json({
                     error: 'The email or password is invalid.',
@@ -88,13 +219,22 @@ class AuthController {
                 throw new Error('The email or password is invalid.');
             }
 
+            if (existingUser.is_verified === false) {
+                res.status(403).json({
+                    error: 'The user is not verified. Please verify your email.',
+                });
+                throw new Error(
+                    'The user is not verified. Please verify your email.'
+                );
+            }
+
             // Compare password with the one stored in the database
-            const isPasswordValid: boolean = await bcrypt.compare(
+            const isPasswordValid: boolean = await compare(
                 password,
                 existingUser.password
             );
 
-            // If the user is not found or the password is not match
+            // If the password is not match
             if (!isPasswordValid) {
                 res.status(404).json({
                     error: 'The email or password is invalid.',

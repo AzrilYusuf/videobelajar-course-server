@@ -22,6 +22,9 @@ authRouter.post(
     authController.registerAdmin
 );
 
+// Verify email
+authRouter.get('/verify-email', authController.verifyEmail);
+
 // Sign in user
 authRouter.post(
     '/signin',
