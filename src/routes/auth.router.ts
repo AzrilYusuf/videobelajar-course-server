@@ -8,10 +8,18 @@ const authRouter: Router = express.Router();
 
 // Create new user / Sign up user
 authRouter.post(
-    '/signup',
+    '/signup/user',
     ...Validator.registerUserValidator(),
     validateRequest,
     authController.registerUser
+);
+
+// Create new admin / Sign up admin
+authRouter.post(
+    '/signup/admin',
+    ...Validator.registerAdminValidator(),
+    validateRequest,
+    authController.registerAdmin
 );
 
 // Sign in user

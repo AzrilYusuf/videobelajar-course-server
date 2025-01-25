@@ -41,28 +41,20 @@ const authenticateUser = (
             process.env.REFRESH_TOKEN_SECRET_KEY!
         );
 
-        //** Check if the role is Admin then proceed to the next middleware or route handler
-        if (
-            decodedAccessToken.role === 'Admin' &&
-            decodedRefreshToken.role === 'Admin'
-        ) {
-            req.token = decodedAccessToken; // TODO: Attach token to the request object
-            next(); // TODO: Proceed to the next middleware or route handler
-        }
-
         //** Type casting is used to access the id property only if the variable is an object(JwtPayload)
         //** The other way is use question mark (?)
         if (
             decodedAccessToken.id !==
-                decodedRefreshToken.id ||
+            decodedRefreshToken.id ||
             decodedAccessToken.role !==
-                decodedRefreshToken.role
+            decodedRefreshToken.role
         ) {
             res.status(403).json({
                 error: 'You are not authorized to access this method.',
             });
             throw new Error('You are not authorized to access this method.');
         }
+
         req.token = decodedAccessToken; // TODO: Attach token to the request object
         next(); // TODO: Proceed to the next middleware or route handler
     } catch (error) {

@@ -3,16 +3,17 @@ import User from '../models/user.model';
 import Auth from '../models/auth.model';
 import bcrypt from 'bcrypt';
 import generateToken from '../utils/generateToken';
-import { LoginUser, RegisterUser } from '../interfaces/userInterface';
+import { LoginUser, RegisterAdmin, RegisterUser, Role } from '../interfaces/userInterface';
 import { RequestWithToken } from '../interfaces/authInterface';
 import decodeToken from '../utils/decodeToken';
 
 class AuthController {
+    // Register a new user
     async registerUser(req: Request, res: Response): Promise<void> {
         try {
-            const dataUser: RegisterUser = req.body;
+            const userData: RegisterUser = req.body;
             const createdUser: User | string | null =
-                await User.createNewUser(dataUser);
+                await User.createNewUser(userData, Role.User);
 
             // If the user already exists
             if (typeof createdUser === 'string') {
@@ -29,6 +30,42 @@ class AuthController {
             }
 
             res.status(201).json({ message: 'The user successfully created!' });
+        } catch (error) {
+            console.error(`${error}`);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
+    async registerAdmin(req: Request, res: Response): Promise<void> {
+        try {
+            const userData: RegisterAdmin = req.body;
+            if (userData.privilege_key !== process.env.PRIVILEGE_KEY) {
+                res.status(400).json({
+                    error: 'The privilege key is invalid.',
+                });
+                throw new Error('The privilege key is invalid.');
+            }
+
+            const createdUser: User | string | null =
+                await User.createNewUser(userData, Role.Admin);
+
+            // If the user already exists
+            if (typeof createdUser === 'string') {
+                res.status(400).json({
+                    error: `User ${createdUser} already exists.`,
+                });
+                throw new Error(`User ${createdUser} already exists.`);
+            }
+
+            // If the user is not created due to an error in the database
+            if (!createdUser) {
+                res.status(400).json({ error: 'The admin is not created.' });
+                throw new Error('The admin is not created.');
+            }
+
+            res.status(201).json({ message: 'The admin successfully created!' });
         } catch (error) {
             console.error(`${error}`);
             res.status(500).json({
@@ -77,14 +114,14 @@ class AuthController {
             // Generate access token and refresh token
             const accessToken: string = generateToken({
                 id: existingUser.id!,
-                role: existingUser.role,
+                role: existingUser.role!,
                 SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY!,
                 expiresIn: '10m',
             });
 
             const refreshToken: string = generateToken({
                 id: existingUser.id!,
-                role: existingUser.role,
+                role: existingUser.role!,
                 SECRET_KEY: process.env.REFRESH_TOKEN_SECRET_KEY!,
                 expiresIn: '30d',
             });
