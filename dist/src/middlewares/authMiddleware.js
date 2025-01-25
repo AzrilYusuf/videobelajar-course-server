@@ -23,11 +23,6 @@ const authenticateUser = (req, res, next) => {
         }
         const decodedAccessToken = (0, decodeToken_1.default)(accessToken, process.env.ACCESS_TOKEN_SECRET_KEY);
         const decodedRefreshToken = (0, decodeToken_1.default)(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
-        if (decodedAccessToken.role === 'Admin' &&
-            decodedRefreshToken.role === 'Admin') {
-            req.token = decodedAccessToken;
-            next();
-        }
         if (decodedAccessToken.id !==
             decodedRefreshToken.id ||
             decodedAccessToken.role !==

@@ -59,12 +59,12 @@ class UsersController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = req.token.id;
-                const dataUser = req.body;
+                const userData = req.body;
                 if (!userId) {
                     res.status(403).json({ error: 'The request is invalid' });
                     throw new Error('The request is invalid');
                 }
-                const updatedUser = yield user_model_1.default.updateUserData(userId, dataUser);
+                const updatedUser = yield user_model_1.default.updateUserData(userId, userData);
                 if (!updatedUser) {
                     res.status(404).json({ error: 'The user is not found.' });
                     throw new Error('The user is not found.');

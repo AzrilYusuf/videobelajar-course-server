@@ -15,7 +15,7 @@ export default class User {
     private phone_number: string;
     public password: string;
     private picture?: string;
-    public role: Role;
+    public role?: Role;
     public is_verified?: boolean;
     private verification_token?: string;
 
@@ -73,7 +73,7 @@ export default class User {
                         email: this.email,
                         phone_number: this.phone_number,
                         password: this.password,
-                        role: this.role,
+                        role: this.role!,
                     },
                     {
                         returning: true,
@@ -88,7 +88,8 @@ export default class User {
 
     // ** Create a new user (Sign up)
     static async createNewUser(
-        userData: RegisterUser
+        userData: RegisterUser,
+        roleParam: Role
     ): Promise<User | string | null> {
         try {
             // Check if the user already exists
@@ -99,7 +100,7 @@ export default class User {
                 return existingUser.email;
             }
 
-            const newUser: User = new User(userData);
+            const newUser: User = new User({ role: roleParam, ...userData });
             return await newUser.save(); // Save new user to the database
         } catch (error) {
             handleSequelizeError(error, 'Creating new user');

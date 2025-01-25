@@ -50,7 +50,7 @@ class UsersController {
     async updateUser(req: RequestWithToken, res: Response): Promise<void> {
         try {
             const userId: number = (req.token as JwtPayload).id;
-            const dataUser: UpdateUser = req.body;
+            const userData: UpdateUser = req.body;
 
             // The user id is required
             if (!userId) {
@@ -60,7 +60,7 @@ class UsersController {
 
             const updatedUser: User | null = await User.updateUserData(
                 userId,
-                dataUser
+                userData
             );
             if (!updatedUser) {
                 res.status(404).json({ error: 'The user is not found.' });

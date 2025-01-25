@@ -16,13 +16,14 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 const auth_model_1 = __importDefault(require("../models/auth.model"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
+const userInterface_1 = require("../interfaces/userInterface");
 const decodeToken_1 = __importDefault(require("../utils/decodeToken"));
 class AuthController {
     registerUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const dataUser = req.body;
-                const createdUser = yield user_model_1.default.createNewUser(dataUser);
+                const userData = req.body;
+                const createdUser = yield user_model_1.default.createNewUser(userData, userInterface_1.Role.User);
                 if (typeof createdUser === 'string') {
                     res.status(400).json({
                         error: `User ${createdUser} already exists.`,
@@ -34,6 +35,37 @@ class AuthController {
                     throw new Error('The user is not created.');
                 }
                 res.status(201).json({ message: 'The user successfully created!' });
+            }
+            catch (error) {
+                console.error(`${error}`);
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
+            }
+        });
+    }
+    registerAdmin(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userData = req.body;
+                if (userData.privilege_key !== process.env.PRIVILEGE_KEY) {
+                    res.status(400).json({
+                        error: 'The privilege key is invalid.',
+                    });
+                    throw new Error('The privilege key is invalid.');
+                }
+                const createdUser = yield user_model_1.default.createNewUser(userData, userInterface_1.Role.Admin);
+                if (typeof createdUser === 'string') {
+                    res.status(400).json({
+                        error: `User ${createdUser} already exists.`,
+                    });
+                    throw new Error(`User ${createdUser} already exists.`);
+                }
+                if (!createdUser) {
+                    res.status(400).json({ error: 'The admin is not created.' });
+                    throw new Error('The admin is not created.');
+                }
+                res.status(201).json({ message: 'The admin successfully created!' });
             }
             catch (error) {
                 console.error(`${error}`);
