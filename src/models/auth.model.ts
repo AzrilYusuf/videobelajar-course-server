@@ -4,7 +4,7 @@ import { AuthConstructor } from '../interfaces/authInterface';
 import { Op } from 'sequelize';
 
 export default class Auth {
-    id?: number;
+    public id?: number;
     public user_id: number;
     public refresh_token: string;
     private expired_at: Date;
@@ -71,16 +71,30 @@ export default class Auth {
         }
     }
 
+    static async findRefreshToken(token: string): Promise<Auth | null> {
+        try {
+            const result: Authentications | null =
+                await Authentications.findOne({
+                    where: { refresh_token: token },
+                });
+            if (!result) return null;
+
+            return new Auth(result);
+        } catch (error) {
+            handleSequelizeError(error, 'Finding refresh token');
+        }
+    }
+
     static async deleteExpiredRefreshToken(userId: number): Promise<void> {
         try {
             const existingRefreshTokens: Authentications[] =
                 await Authentications.findAll({
                     where: {
                         user_id: userId,
-                        expired_at: { [Op.lt]: new Date() },
+                        expired_at: { [Op.lt]: new Date() }, // Find expired refresh tokens
                     },
                 });
-                
+
             if (existingRefreshTokens.length > 0) {
                 await Authentications.destroy({
                     where: { id: existingRefreshTokens[0].id },
@@ -91,10 +105,10 @@ export default class Auth {
         }
     }
 
-    static async deleteRefreshToken(userId: number): Promise<void> {
+    static async deleteRefreshToken(token: string): Promise<void> {
         try {
             await Authentications.destroy({
-                where: { user_id: userId },
+                where: { refresh_token: token },
             });
         } catch (error) {
             handleSequelizeError(error, 'Deleting refresh token');

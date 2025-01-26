@@ -171,43 +171,43 @@ class AuthController {
             try {
                 const { email, password } = req.body;
                 const tokenFromCookie = req.cookies.token;
-                const existingUser = yield user_model_1.default.findByEmail(email);
-                if (!existingUser) {
+                const existedUser = yield user_model_1.default.findByEmail(email);
+                if (!existedUser) {
                     res.status(404).json({
                         error: 'The email or password is invalid.',
                     });
                     throw new Error('The email or password is invalid.');
                 }
-                if (existingUser.is_verified === false) {
+                if (existedUser.is_verified === false) {
                     res.status(403).json({
                         error: 'The user is not verified. Please verify your email.',
                     });
                     throw new Error('The user is not verified. Please verify your email.');
                 }
-                const isPasswordValid = yield (0, bcrypt_1.compare)(password, existingUser.password);
+                const isPasswordValid = yield (0, bcrypt_1.compare)(password, existedUser.password);
                 if (!isPasswordValid) {
                     res.status(404).json({
                         error: 'The email or password is invalid.',
                     });
                     throw new Error('The email or password is invalid.');
                 }
-                yield auth_model_1.default.deleteExpiredRefreshToken(existingUser.id);
+                yield auth_model_1.default.deleteExpiredRefreshToken(existedUser.id);
                 if (tokenFromCookie) {
-                    auth_model_1.default.deleteRefreshToken(existingUser.id);
+                    yield auth_model_1.default.deleteRefreshToken(tokenFromCookie);
                 }
                 const accessToken = (0, generateToken_1.default)({
-                    id: existingUser.id,
-                    role: existingUser.role,
+                    id: existedUser.id,
+                    role: existedUser.role,
                     SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY,
                     expiresIn: '10m',
                 });
                 const refreshToken = (0, generateToken_1.default)({
-                    id: existingUser.id,
-                    role: existingUser.role,
+                    id: existedUser.id,
+                    role: existedUser.role,
                     SECRET_KEY: process.env.REFRESH_TOKEN_SECRET_KEY,
                     expiresIn: '30d',
                 });
-                yield auth_model_1.default.storeRefreshToken(existingUser.id, refreshToken);
+                yield auth_model_1.default.storeRefreshToken(existedUser.id, refreshToken);
                 res.cookie('token', refreshToken, {
                     httpOnly: true,
                     secure: true,
@@ -227,6 +227,37 @@ class AuthController {
             }
         });
     }
+    regenerateAccessToken(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const refreshToken = req.cookies.token;
+                if (!refreshToken) {
+                    res.status(401).json({ error: 'Token not provided.' });
+                    throw new Error('Token not provided.');
+                }
+                const storedRefreshToken = yield auth_model_1.default.findRefreshToken(refreshToken);
+                if (!storedRefreshToken) {
+                    res.status(401).json({ error: 'Invalid token.' });
+                    throw new Error('Invalid token.');
+                }
+                yield auth_model_1.default.deleteExpiredRefreshToken(storedRefreshToken.user_id);
+                const decodedRefreshToken = (0, decodeToken_1.default)(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
+                const newAccessToken = (0, generateToken_1.default)({
+                    id: decodedRefreshToken.id,
+                    role: decodedRefreshToken.role,
+                    SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY,
+                    expiresIn: '10m',
+                });
+                res.status(200).json({ accessToken: newAccessToken });
+            }
+            catch (error) {
+                console.error(`${error}`);
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
+            }
+        });
+    }
     logOutUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -234,8 +265,7 @@ class AuthController {
                 if (!refreshToken) {
                     res.status(204);
                 }
-                const decodedRefreshToken = (0, decodeToken_1.default)(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
-                yield auth_model_1.default.deleteRefreshToken(decodedRefreshToken.id);
+                yield auth_model_1.default.deleteRefreshToken(refreshToken);
                 res.clearCookie('token', {
                     httpOnly: true,
                     secure: true,
