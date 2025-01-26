@@ -160,6 +160,23 @@ class User {
             }
         });
     }
+    static findPictureFileName(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existingUser = yield users_1.default.findOne({
+                    where: {
+                        id: userId,
+                    },
+                });
+                if (!existingUser)
+                    return null;
+                return existingUser.picture;
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.default)(error, 'Finding user picture filename by id');
+            }
+        });
+    }
     static updateUserData(userId, userData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -174,7 +191,7 @@ class User {
             }
         });
     }
-    static storeUserPicture(userId, userPicture) {
+    static storePictureFileName(userId, userPicture) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existedUser = yield users_1.default.findByPk(userId);

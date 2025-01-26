@@ -80,12 +80,40 @@ class UsersController {
                     res.status(400).json({ error: 'No picture was uploaded.' });
                     throw new Error('No picture was uploaded.');
                 }
-                const updatedUser = yield user_model_1.default.storeUserPicture(userId, filePicture.filename);
-                if (!updatedUser) {
+                const storedPictureFileName = yield user_model_1.default.storePictureFileName(userId, filePicture.filename);
+                if (!storedPictureFileName) {
                     res.status(404).json({ error: 'The user is not found.' });
                     throw new Error('The user is not found.');
                 }
-                res.status(204).json({ message: 'The picture successfully uploaded!' });
+                res.status(204).json({
+                    message: 'The picture successfully uploaded!',
+                });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
+            }
+        });
+    }
+    getUrlPicture(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.token.id;
+                const existedFileName = yield user_model_1.default.findPictureFileName(userId);
+                if (existedFileName === null) {
+                    res.status(404).json({ error: 'The user is not found.' });
+                    throw new Error('The user is not found.');
+                }
+                if (existedFileName === undefined) {
+                    res.status(404).json({ error: 'The picture is not found.' });
+                    throw new Error('The picture is not found.');
+                }
+                const picturePath = process.env.SERVER_DOMAIN ||
+                    `localhost:${process.env.SERVER_PORT || 3000}` +
+                        `/assets/images/${existedFileName}`;
+                res.status(200).json({ picturePath });
             }
             catch (error) {
                 console.error(error);

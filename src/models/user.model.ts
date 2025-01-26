@@ -32,7 +32,7 @@ export default class User {
             this.verification_token = user.verification_token;
         }
     }
-    
+
     //** Save user information to database (update and create)
     async save(): Promise<User | null> {
         try {
@@ -68,7 +68,6 @@ export default class User {
                 return new User(results[0]);
                 //* Create new user
             } else {
-
                 const results: Users = await Users.create(
                     {
                         fullname: this.fullname,
@@ -135,7 +134,6 @@ export default class User {
             return new User(existedUser);
         } catch (error) {
             handleSequelizeError(error, 'Verifying email');
-            
         }
     }
 
@@ -183,6 +181,22 @@ export default class User {
         }
     }
 
+    static async findPictureFileName(
+        userId: number
+    ): Promise<string | undefined | null> {
+        try {
+            const existingUser: Users | null = await Users.findOne({
+                where: {
+                    id: userId,
+                },
+            });
+            if (!existingUser) return null;
+            return existingUser.picture;
+        } catch (error) {
+            handleSequelizeError(error, 'Finding user picture filename by id');
+        }
+    }
+
     static async updateUserData(
         userId: number,
         userData: UpdateUser
@@ -198,7 +212,11 @@ export default class User {
         }
     }
 
-    static async storeUserPicture(userId: number, userPicture: string): Promise<User | null> {
+    // Store user picture filename in database
+    static async storePictureFileName(
+        userId: number,
+        userPicture: string
+    ): Promise<User | null> {
         try {
             const existedUser: Users | null = await Users.findByPk(userId);
             if (!existedUser) return null;
