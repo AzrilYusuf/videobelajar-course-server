@@ -37,7 +37,7 @@ authRouter.post(
 // Refresh / regenerate access token
 authRouter.post(
     '/refresh-token',
-    reqRateLimiter,
+    reqRateLimiter, // Limit request from each IP to prevent multiple requests
     authController.regenerateAccessToken
 );
 

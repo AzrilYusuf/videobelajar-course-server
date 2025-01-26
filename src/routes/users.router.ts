@@ -4,6 +4,7 @@ import authenticateUser from '../middlewares/authMiddleware';
 import authorizeAdmin from '../middlewares/authAdminMiddleware';
 import Validator from '../validators/validator';
 import validateRequest from '../middlewares/validationMiddleware';
+import uploader from '../middlewares/uploaderMiddleware';
 
 const usersRouter: Router = express.Router();
 
@@ -16,11 +17,7 @@ usersRouter.get(
 );
 
 // Get user by id
-usersRouter.get(
-    '/',
-    authenticateUser,
-    usersController.getUserById
-);
+usersRouter.get('/', authenticateUser, usersController.getUserById);
 
 // Update user
 usersRouter.put(
@@ -29,6 +26,14 @@ usersRouter.put(
     ...Validator.updateUserValidator(),
     validateRequest,
     usersController.updateUser
+);
+
+// Update user picture
+usersRouter.post(
+    '/upload-picture',
+    authenticateUser,
+    uploader.single('file'),
+    usersController.uploadUserPicture
 );
 
 // Delete user
