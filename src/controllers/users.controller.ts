@@ -78,16 +78,47 @@ class UsersController {
                 throw new Error('No picture was uploaded.');
             }
 
-            const updatedUser: User | null = await User.storeUserPicture(
-                userId,
-                filePicture.filename
-            );
-            if (!updatedUser) {
+            // Store user picture filename in database
+            const storedPictureFileName: User | null =
+                await User.storePictureFileName(userId, filePicture.filename);
+            if (!storedPictureFileName) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
             }
 
-            res.status(204).json({ message: 'The picture successfully uploaded!' });
+            res.status(204).json({
+                message: 'The picture successfully uploaded!',
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
+    async getUrlPicture(req: RequestWithToken, res: Response): Promise<void> {
+        try {
+            const userId = (req.token as JwtPayload).id;
+            const existedFileName: string | undefined | null =
+                await User.findPictureFileName(userId);
+
+            if (existedFileName === null) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
+            }
+
+            if (existedFileName === undefined) {
+                res.status(404).json({ error: 'The picture is not found.' });
+                throw new Error('The picture is not found.');
+            }
+
+            const picturePath: string =
+                process.env.SERVER_DOMAIN ||
+                `localhost:${process.env.SERVER_PORT || 3000}` +
+                    `/assets/images/${existedFileName}`;
+
+            res.status(200).json({ picturePath });
         } catch (error) {
             console.error(error);
             res.status(500).json({

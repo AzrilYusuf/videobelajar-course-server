@@ -44,10 +44,8 @@ const authenticateUser = (
         //** Type casting is used to access the id property only if the variable is an object(JwtPayload)
         //** The other way is use question mark (?)
         if (
-            decodedAccessToken.id !==
-            decodedRefreshToken.id ||
-            decodedAccessToken.role !==
-            decodedRefreshToken.role
+            decodedAccessToken.id !== decodedRefreshToken.id ||
+            decodedAccessToken.role !== decodedRefreshToken.role
         ) {
             res.status(403).json({
                 error: 'You are not forbidden to access this method.',

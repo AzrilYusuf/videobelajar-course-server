@@ -36,6 +36,13 @@ usersRouter.post(
     usersController.uploadUserPicture
 );
 
+// Get url picture
+usersRouter.get(
+    '/url-picture',
+    authenticateUser,
+    usersController.getUrlPicture
+);
+
 // Delete user
 usersRouter.delete(
     '/:id',
