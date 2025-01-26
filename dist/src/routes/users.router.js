@@ -14,9 +14,10 @@ const usersRouter = express_1.default.Router();
 usersRouter.get('/all-users', authMiddleware_1.default, authAdminMiddleware_1.default, users_controller_1.default.getAllUsers);
 usersRouter.get('/', authMiddleware_1.default, users_controller_1.default.getUserById);
 usersRouter.put('/', authMiddleware_1.default, ...validator_1.default.updateUserValidator(), validationMiddleware_1.default, users_controller_1.default.updateUser);
-usersRouter.post('/upload-picture', authMiddleware_1.default, uploaderMiddleware_1.default.single('file'), users_controller_1.default.uploadUserPicture);
+usersRouter.post('/picture', authMiddleware_1.default, uploaderMiddleware_1.default.single('file'), users_controller_1.default.uploadUserPicture);
 usersRouter.get('/picture', authMiddleware_1.default, users_controller_1.default.getUrlPicture);
-usersRouter.delete('/picture', authMiddleware_1.default, users_controller_1.default.deletePicture);
+usersRouter.patch('/picture', authMiddleware_1.default, uploaderMiddleware_1.default.single('file'), users_controller_1.default.updateUserPicture);
+usersRouter.delete('/picture', authMiddleware_1.default, users_controller_1.default.deleteUserPicture);
 usersRouter.delete('/:id', authMiddleware_1.default, authAdminMiddleware_1.default, users_controller_1.default.deleteUser);
 exports.default = usersRouter;
 //# sourceMappingURL=users.router.js.map

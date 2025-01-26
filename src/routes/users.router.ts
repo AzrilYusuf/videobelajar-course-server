@@ -30,24 +30,28 @@ usersRouter.put(
 
 // Upload user picture
 usersRouter.post(
-    '/upload-picture',
+    '/picture',
     authenticateUser,
     uploader.single('file'),
     usersController.uploadUserPicture
 );
 
 // Get url picture
-usersRouter.get(
+usersRouter.get('/picture', authenticateUser, usersController.getUrlPicture);
+
+//Update picture
+usersRouter.patch(
     '/picture',
     authenticateUser,
-    usersController.getUrlPicture
+    uploader.single('file'),
+    usersController.updateUserPicture
 );
 
 // Delete user picture
 usersRouter.delete(
     '/picture',
     authenticateUser,
-    usersController.deletePicture
+    usersController.deleteUserPicture
 );
 
 // Delete user

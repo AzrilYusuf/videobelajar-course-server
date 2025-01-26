@@ -129,7 +129,60 @@ class UsersController {
         }
     }
 
-    async deletePicture(req: RequestWithToken, res: Response): Promise<void> {
+    async updateUserPicture(
+        req: RequestWithToken,
+        res: Response
+    ): Promise<void> {
+        try {
+            const userId: number = (req.token as JwtPayload).id;
+            const filePicture: Express.Multer.File | undefined = req.file;
+
+            // Check wether the file uploaded successfully
+            if (!filePicture) {
+                res.status(400).json({ error: 'No picture was uploaded.' });
+                throw new Error('No picture was uploaded.');
+            }
+
+            const existedFileName: string | undefined | null =
+                await User.findPictureFileName(userId);
+
+            if (existedFileName === null) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
+            }
+
+            if (existedFileName === undefined) {
+                res.status(404).json({ error: 'The picture is not found.' });
+                throw new Error('The picture is not found.');
+            }
+
+            // Delete user picture in the uploads directory
+            const unlinkAsync = promisify(unlink);
+            await unlinkAsync(`uploads/${existedFileName}`);
+
+            const updatedPictureFileName: User | null =
+                await User.storePictureFileName(userId, filePicture.filename);
+
+            if (!updatedPictureFileName) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
+            }
+
+            res.status(204).json({
+                message: 'The picture successfully updated!',
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
+    async deleteUserPicture(
+        req: RequestWithToken,
+        res: Response
+    ): Promise<void> {
         try {
             const userId: number = (req.token as JwtPayload).id;
             const existedFileName: string | undefined | null =
@@ -154,8 +207,12 @@ class UsersController {
                 await User.deletePictureFileName(userId);
             // If the user is not found
             if (deletedPicture === null) {
-                res.status(404).json({ error: 'Could not delete picture, the user is not found.' });
-                throw new Error('Could not delete picture, the user is not found.');
+                res.status(404).json({
+                    error: 'Could not delete picture, the user is not found.',
+                });
+                throw new Error(
+                    'Could not delete picture, the user is not found.'
+                );
             }
 
             res.status(204).json({
