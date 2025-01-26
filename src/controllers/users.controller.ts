@@ -25,11 +25,6 @@ class UsersController {
     async getUserById(req: RequestWithToken, res: Response): Promise<void> {
         try {
             const id: number = (req.token as JwtPayload).id;
-            if (!id) {
-                res.status(403).json({ error: 'The request is invalid' });
-                throw new Error('The request is invalid');
-            }
-
             const user: User | null = await User.findUserById(id);
 
             // If the user is not found
@@ -51,13 +46,6 @@ class UsersController {
         try {
             const userId: number = (req.token as JwtPayload).id;
             const userData: UpdateUser = req.body;
-
-            // The user id is required
-            if (!userId) {
-                res.status(403).json({ error: 'The request is invalid' });
-                throw new Error('The request is invalid');
-            }
-
             const updatedUser: User | null = await User.updateUserData(
                 userId,
                 userData
@@ -76,15 +64,41 @@ class UsersController {
         }
     }
 
+    async uploadUserPicture(
+        req: RequestWithToken,
+        res: Response
+    ): Promise<void> {
+        try {
+            const userId: number = (req.token as JwtPayload).id;
+            const filePicture: Express.Multer.File | undefined = req.file;
+
+            // Check wether the file uploaded successfully
+            if (!filePicture) {
+                res.status(400).json({ error: 'No picture was uploaded.' });
+                throw new Error('No picture was uploaded.');
+            }
+
+            const updatedUser: User | null = await User.storeUserPicture(
+                userId,
+                filePicture.filename
+            );
+            if (!updatedUser) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
+            }
+
+            res.status(204).json({ message: 'The picture successfully uploaded!' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
     async deleteUser(req: Request, res: Response): Promise<void> {
         try {
             const userId: number = Number(req.params.id);
-
-            if (!userId) {
-                res.status(403).json({ error: 'The request is invalid' });
-                throw new Error('The request is invalid');
-            }
-
             const deletedUser: void | null = await User.deleteUser(userId);
             // If the user is not found
             if (deletedUser === null) {

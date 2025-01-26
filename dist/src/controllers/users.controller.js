@@ -36,10 +36,6 @@ class UsersController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const id = req.token.id;
-                if (!id) {
-                    res.status(403).json({ error: 'The request is invalid' });
-                    throw new Error('The request is invalid');
-                }
                 const user = yield user_model_1.default.findUserById(id);
                 if (user === null) {
                     res.status(404).json({ error: 'The user is not found.' });
@@ -60,10 +56,6 @@ class UsersController {
             try {
                 const userId = req.token.id;
                 const userData = req.body;
-                if (!userId) {
-                    res.status(403).json({ error: 'The request is invalid' });
-                    throw new Error('The request is invalid');
-                }
                 const updatedUser = yield user_model_1.default.updateUserData(userId, userData);
                 if (!updatedUser) {
                     res.status(404).json({ error: 'The user is not found.' });
@@ -79,14 +71,34 @@ class UsersController {
             }
         });
     }
+    uploadUserPicture(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.token.id;
+                const filePicture = req.file;
+                if (!filePicture) {
+                    res.status(400).json({ error: 'No picture was uploaded.' });
+                    throw new Error('No picture was uploaded.');
+                }
+                const updatedUser = yield user_model_1.default.storeUserPicture(userId, filePicture.filename);
+                if (!updatedUser) {
+                    res.status(404).json({ error: 'The user is not found.' });
+                    throw new Error('The user is not found.');
+                }
+                res.status(204).json({ message: 'The picture successfully uploaded!' });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
+            }
+        });
+    }
     deleteUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = Number(req.params.id);
-                if (!userId) {
-                    res.status(403).json({ error: 'The request is invalid' });
-                    throw new Error('The request is invalid');
-                }
                 const deletedUser = yield user_model_1.default.deleteUser(userId);
                 if (deletedUser === null) {
                     res.status(404).json({ error: 'The user is not found.' });

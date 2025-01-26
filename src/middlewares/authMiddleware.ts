@@ -50,9 +50,9 @@ const authenticateUser = (
             decodedRefreshToken.role
         ) {
             res.status(403).json({
-                error: 'You are not authorized to access this method.',
+                error: 'You are not forbidden to access this method.',
             });
-            throw new Error('You are not authorized to access this method.');
+            throw new Error('You are not forbidden to access this method.');
         }
 
         req.token = decodedAccessToken; // TODO: Attach token to the request object

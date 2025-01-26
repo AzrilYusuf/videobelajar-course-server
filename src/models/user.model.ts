@@ -189,9 +189,7 @@ export default class User {
     ): Promise<User | null> {
         try {
             const existingUser: Users | null = await Users.findByPk(userId);
-            if (!existingUser) {
-                return null;
-            }
+            if (!existingUser) return null;
 
             const updatedUser: User = new User({ id: userId, ...userData });
             return await updatedUser.save();
@@ -200,12 +198,23 @@ export default class User {
         }
     }
 
+    static async storeUserPicture(userId: number, userPicture: string): Promise<User | null> {
+        try {
+            const existedUser: Users | null = await Users.findByPk(userId);
+            if (!existedUser) return null;
+
+            existedUser.picture = userPicture;
+            await existedUser.save();
+            return new User(existedUser);
+        } catch (error) {
+            handleSequelizeError(error, 'Storing user picture');
+        }
+    }
+
     static async deleteUser(id: number): Promise<void | null> {
         try {
             const existingUser: Users | null = await Users.findByPk(id);
-            if (!existingUser) {
-                return null;
-            }
+            if (!existingUser) return null;
 
             await Users.destroy({ where: { id: existingUser.id } });
         } catch (error) {
