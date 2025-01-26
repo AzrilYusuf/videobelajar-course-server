@@ -2,18 +2,19 @@ import { Request, Response } from 'express';
 import User from '../models/user.model';
 import Auth from '../models/auth.model';
 import { compare } from 'bcrypt';
+import { JwtPayload } from 'jsonwebtoken';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import generateToken from '../utils/generateToken';
 import decodeToken from '../utils/decodeToken';
 import generateVerificationToken from '../utils/generateVerificationToken';
 import transporter from '../utils/nodemailer';
+import { RequestWithToken } from '../interfaces/authInterface';
 import {
     LoginUser,
     RegisterAdmin,
     RegisterUser,
     Role,
 } from '../interfaces/userInterface';
-import { RequestWithToken } from '../interfaces/authInterface';
 
 class AuthController {
     // Register a new user
@@ -181,7 +182,7 @@ class AuthController {
                 throw new Error('Missing token or id.');
             }
 
-            const verifiedUser = await User.verifyEmail(
+            const verifiedUser: User | null = await User.verifyEmail(
                 Number(id),
                 String(token)
             );
@@ -209,17 +210,17 @@ class AuthController {
         try {
             const { email, password }: LoginUser = req.body;
             const tokenFromCookie: string = req.cookies.token;
-            const existingUser: User | null = await User.findByEmail(email);
+            const existedUser: User | null = await User.findByEmail(email);
 
             // If the user is not found
-            if (!existingUser) {
+            if (!existedUser) {
                 res.status(404).json({
                     error: 'The email or password is invalid.',
                 });
                 throw new Error('The email or password is invalid.');
             }
 
-            if (existingUser.is_verified === false) {
+            if (existedUser.is_verified === false) {
                 res.status(403).json({
                     error: 'The user is not verified. Please verify your email.',
                 });
@@ -231,7 +232,7 @@ class AuthController {
             // Compare password with the one stored in the database
             const isPasswordValid: boolean = await compare(
                 password,
-                existingUser.password
+                existedUser.password
             );
 
             // If the password is not match
@@ -243,31 +244,31 @@ class AuthController {
             }
 
             // * Automatically delete the expired refresh token if it exists
-            await Auth.deleteExpiredRefreshToken(existingUser.id!);
+            await Auth.deleteExpiredRefreshToken(existedUser.id!);
 
             // * Delete the refresh token if the user already has it
             // * in both database and cookies
             if (tokenFromCookie) {
-                Auth.deleteRefreshToken(existingUser.id!);
+                await Auth.deleteRefreshToken(tokenFromCookie);
             }
 
             // Generate access token and refresh token
             const accessToken: string = generateToken({
-                id: existingUser.id!,
-                role: existingUser.role!,
+                id: existedUser.id!,
+                role: existedUser.role!,
                 SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY!,
                 expiresIn: '10m',
             });
 
             const refreshToken: string = generateToken({
-                id: existingUser.id!,
-                role: existingUser.role!,
+                id: existedUser.id!,
+                role: existedUser.role!,
                 SECRET_KEY: process.env.REFRESH_TOKEN_SECRET_KEY!,
                 expiresIn: '30d',
             });
 
             // Save refresh token to the database
-            await Auth.storeRefreshToken(existingUser.id!, refreshToken);
+            await Auth.storeRefreshToken(existedUser.id!, refreshToken);
 
             // Set cookie
             res.cookie('token', refreshToken, {
@@ -289,6 +290,50 @@ class AuthController {
         }
     }
 
+    async regenerateAccessToken(
+        req: RequestWithToken,
+        res: Response
+    ): Promise<void> {
+        try {
+            const refreshToken: string = req.cookies.token;
+            if (!refreshToken) {
+                res.status(401).json({ error: 'Token not provided.' });
+                throw new Error('Token not provided.');
+            }
+
+            // Check if the refresh token is valid
+            const storedRefreshToken: Auth | null =
+                await Auth.findRefreshToken(refreshToken);
+
+            if (!storedRefreshToken) {
+                res.status(401).json({ error: 'Invalid token.' });
+                throw new Error('Invalid token.');
+            }
+
+            // Delete expired refresh tokens
+            await Auth.deleteExpiredRefreshToken(storedRefreshToken.user_id);
+
+            const decodedRefreshToken: JwtPayload = decodeToken(
+                refreshToken,
+                process.env.REFRESH_TOKEN_SECRET_KEY!
+            );
+
+            const newAccessToken: string = generateToken({
+                id: decodedRefreshToken.id,
+                role: decodedRefreshToken.role,
+                SECRET_KEY: process.env.ACCESS_TOKEN_SECRET_KEY!,
+                expiresIn: '10m',
+            });
+
+            res.status(200).json({ accessToken: newAccessToken });
+        } catch (error) {
+            console.error(`${error}`);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
     async logOutUser(req: RequestWithToken, res: Response): Promise<void> {
         try {
             const refreshToken: string = req.cookies.token;
@@ -296,13 +341,8 @@ class AuthController {
                 res.status(204);
             }
 
-            const decodedRefreshToken = decodeToken(
-                refreshToken,
-                process.env.REFRESH_TOKEN_SECRET_KEY!
-            );
-
             // Delete the refresh token from the database
-            await Auth.deleteRefreshToken(decodedRefreshToken.id);
+            await Auth.deleteRefreshToken(refreshToken);
 
             // Delete the refresh token from the cookies
             res.clearCookie('token', {
