@@ -67,6 +67,21 @@ class Auth {
             }
         });
     }
+    static findRefreshToken(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const result = yield authentications_1.default.findOne({
+                    where: { refresh_token: token },
+                });
+                if (!result)
+                    return null;
+                return new Auth(result);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.default)(error, 'Finding refresh token');
+            }
+        });
+    }
     static deleteExpiredRefreshToken(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -87,11 +102,11 @@ class Auth {
             }
         });
     }
-    static deleteRefreshToken(userId) {
+    static deleteRefreshToken(token) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield authentications_1.default.destroy({
-                    where: { user_id: userId },
+                    where: { refresh_token: token },
                 });
             }
             catch (error) {

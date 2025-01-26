@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import authenticateUser from '../middlewares/authMiddleware';
 import Validator from '../validators/validator';
 import validateRequest from '../middlewares/validationMiddleware';
+import reqRateLimiter from '../middlewares/reqRateLimiterMiddleware';
 import authController from '../controllers/auth.controller';
 
 const authRouter: Router = express.Router();
@@ -31,6 +32,13 @@ authRouter.post(
     ...Validator.loginUserValidator(),
     validateRequest,
     authController.logInUser
+);
+
+// Refresh / regenerate access token
+authRouter.post(
+    '/refresh-token',
+    reqRateLimiter,
+    authController.regenerateAccessToken
 );
 
 // Sign out user
