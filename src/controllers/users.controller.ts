@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { JwtPayload } from 'jsonwebtoken';
-import { unlink } from 'fs';
+import { PathLike, unlink } from 'fs';
 import { promisify } from 'util';
 import { RequestWithToken } from '../interfaces/authInterface';
 import { UpdateUser } from 'src/interfaces/userInterface';
@@ -72,9 +72,10 @@ class UsersController {
     ): Promise<void> {
         try {
             const userId: number = (req.token as JwtPayload).id;
+            // Stored file in uploads directory
             const filePicture: Express.Multer.File | undefined = req.file;
 
-            // Check wether the file uploaded successfully
+            // Check whether the file uploaded successfully
             if (!filePicture) {
                 res.status(400).json({ error: 'No picture was uploaded.' });
                 throw new Error('No picture was uploaded.');
@@ -102,19 +103,23 @@ class UsersController {
     async getUrlPicture(req: RequestWithToken, res: Response): Promise<void> {
         try {
             const userId: number = (req.token as JwtPayload).id;
+            // Finding existing file name in database
             const existedFileName: string | undefined | null =
                 await User.findPictureFileName(userId);
 
+            // If the user is not found
             if (existedFileName === null) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
             }
 
+            // If the picture is not found
             if (existedFileName === undefined) {
                 res.status(404).json({ error: 'The picture is not found.' });
                 throw new Error('The picture is not found.');
             }
 
+            // Picture path that is going to be sent to the client
             const picturePath: string =
                 process.env.SERVER_DOMAIN ||
                 `localhost:${process.env.SERVER_PORT || 3000}` +
@@ -135,31 +140,36 @@ class UsersController {
     ): Promise<void> {
         try {
             const userId: number = (req.token as JwtPayload).id;
+            // Stored file in uploads directory
             const filePicture: Express.Multer.File | undefined = req.file;
 
-            // Check wether the file uploaded successfully
+            // Check whether the file uploaded successfully
             if (!filePicture) {
-                res.status(400).json({ error: 'No picture was uploaded.' });
-                throw new Error('No picture was uploaded.');
+                res.status(400).json({ error: 'No picture was updated.' });
+                throw new Error('No picture was updated.');
             }
 
+            // Finding existing file name in database
             const existedFileName: string | undefined | null =
                 await User.findPictureFileName(userId);
 
+            // If the user is not found
             if (existedFileName === null) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
             }
 
+            // If the picture is not found
             if (existedFileName === undefined) {
                 res.status(404).json({ error: 'The picture is not found.' });
                 throw new Error('The picture is not found.');
             }
 
             // Delete user picture in the uploads directory
-            const unlinkAsync = promisify(unlink);
+            const unlinkAsync: (path: PathLike) => Promise<void> = promisify(unlink);
             await unlinkAsync(`uploads/${existedFileName}`);
 
+            // Store new user picture filename in database
             const updatedPictureFileName: User | null =
                 await User.storePictureFileName(userId, filePicture.filename);
 
@@ -185,21 +195,24 @@ class UsersController {
     ): Promise<void> {
         try {
             const userId: number = (req.token as JwtPayload).id;
+            // Finding existing file name in database
             const existedFileName: string | undefined | null =
                 await User.findPictureFileName(userId);
 
+            // If the user is not found
             if (existedFileName === null) {
                 res.status(404).json({ error: 'The user is not found.' });
                 throw new Error('The user is not found.');
             }
 
+            // If the picture is not found
             if (existedFileName === undefined) {
                 res.status(404).json({ error: 'The picture is not found.' });
                 throw new Error('The picture is not found.');
             }
 
             // Delete user picture in the uploads directory
-            const unlinkAsync = promisify(unlink);
+            const unlinkAsync: (path: PathLike) => Promise<void> = promisify(unlink);
             await unlinkAsync(`uploads/${existedFileName}`);
 
             // Delete user picture filename in database

@@ -218,9 +218,9 @@ export default class User {
     ): Promise<User | null> {
         try {
             const existedUser: Users | null = await Users.findByPk(userId);
-            if (!existedUser) return null;
+            if (!existedUser) return null; // User not found
 
-            existedUser.picture = fileName;
+            existedUser.picture = fileName; // Update data
             await existedUser.save();
             return new User(existedUser);
         } catch (error) {
