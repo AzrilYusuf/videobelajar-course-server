@@ -13,6 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = __importDefault(require("../models/user.model"));
+const fs_1 = require("fs");
+const util_1 = require("util");
 class UsersController {
     getAllUsers(_req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -114,6 +116,38 @@ class UsersController {
                     `localhost:${process.env.SERVER_PORT || 3000}` +
                         `/assets/images/${existedFileName}`;
                 res.status(200).json({ picturePath });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    error: `An internal server error occurred: ${error.message}`,
+                });
+            }
+        });
+    }
+    deletePicture(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.token.id;
+                const existedFileName = yield user_model_1.default.findPictureFileName(userId);
+                if (existedFileName === null) {
+                    res.status(404).json({ error: 'The user is not found.' });
+                    throw new Error('The user is not found.');
+                }
+                if (existedFileName === undefined) {
+                    res.status(404).json({ error: 'The picture is not found.' });
+                    throw new Error('The picture is not found.');
+                }
+                const unlinkAsync = (0, util_1.promisify)(fs_1.unlink);
+                yield unlinkAsync(`uploads/${existedFileName}`);
+                const deletedPicture = yield user_model_1.default.deletePictureFileName(userId);
+                if (deletedPicture === null) {
+                    res.status(404).json({ error: 'Could not delete picture, the user is not found.' });
+                    throw new Error('Could not delete picture, the user is not found.');
+                }
+                res.status(204).json({
+                    message: 'The picture successfully deleted!',
+                });
             }
             catch (error) {
                 console.error(error);
