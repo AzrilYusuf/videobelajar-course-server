@@ -164,9 +164,8 @@ class User {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existingUser = yield users_1.default.findByPk(userId);
-                if (!existingUser) {
+                if (!existingUser)
                     return null;
-                }
                 const updatedUser = new User(Object.assign({ id: userId }, userData));
                 return yield updatedUser.save();
             }
@@ -175,13 +174,27 @@ class User {
             }
         });
     }
+    static storeUserPicture(userId, userPicture) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existedUser = yield users_1.default.findByPk(userId);
+                if (!existedUser)
+                    return null;
+                existedUser.picture = userPicture;
+                yield existedUser.save();
+                return new User(existedUser);
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.default)(error, 'Storing user picture');
+            }
+        });
+    }
     static deleteUser(id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existingUser = yield users_1.default.findByPk(id);
-                if (!existingUser) {
+                if (!existingUser)
                     return null;
-                }
                 yield users_1.default.destroy({ where: { id: existingUser.id } });
             }
             catch (error) {
