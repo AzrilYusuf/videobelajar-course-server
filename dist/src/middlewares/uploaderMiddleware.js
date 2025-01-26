@@ -12,12 +12,25 @@ if (!fs_1.default.existsSync(uploadsDir)) {
 }
 const storage = multer_1.default.diskStorage({
     destination: (_req, _file, cb) => {
-        cb(null, 'uploads/');
+        try {
+            console.log(`Uploads Directory: ${uploadsDir}`);
+            cb(null, 'uploads/');
+        }
+        catch (err) {
+            console.error('Error in destination function:', err);
+            cb(err, '');
+        }
     },
     filename: (_req, file, cb) => {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        const ext = path_1.default.extname(file.originalname);
-        cb(null, `${uniqueSuffix}${ext}`);
+        try {
+            const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+            const ext = path_1.default.extname(file.originalname);
+            cb(null, `${uniqueSuffix}${ext}`);
+        }
+        catch (err) {
+            console.error('Error in filename function:', err);
+            cb(err, '');
+        }
     },
 });
 const upload = (0, multer_1.default)({ storage: storage });

@@ -14,16 +14,27 @@ const storage: multer.StorageEngine = multer.diskStorage({
         _file: Express.Multer.File, //**  variables for readability and maintainability
         cb: (error: Error | null, destination: string) => void // cb means callback
     ): void => {
-        cb(null, 'uploads/');
+        try {
+            console.log(`Uploads Directory: ${uploadsDir}`);
+            cb(null, 'uploads/');
+        } catch (err) {
+            console.error('Error in destination function:', err);
+            cb(err, '');
+        }
     },
     filename: (
         _req: Request,
         file: Express.Multer.File,
         cb: (error: Error | null, filename: string) => void
     ): void => {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        const ext = path.extname(file.originalname);
-        cb(null, `${uniqueSuffix}${ext}`);
+        try {
+            const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+            const ext = path.extname(file.originalname);
+            cb(null, `${uniqueSuffix}${ext}`);
+        } catch (err) {
+            console.error('Error in filename function:', err);
+            cb(err, '');
+        }
     },
 });
 

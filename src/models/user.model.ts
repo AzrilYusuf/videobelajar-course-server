@@ -14,7 +14,7 @@ export default class User {
     public email: string;
     private phone_number: string;
     public password: string;
-    private picture?: string;
+    public picture?: string;
     public role?: Role;
     public is_verified?: boolean;
     public verification_token?: string;
@@ -121,7 +121,7 @@ export default class User {
 
     static async verifyEmail(id: number, token: string): Promise<User | null> {
         try {
-            const existedUser: Users | null = await Users.findByPk(id);
+            const existedUser: User | null = await User.findUserById(id);
             if (!existedUser) {
                 return null;
             }
@@ -130,8 +130,7 @@ export default class User {
             }
             existedUser.is_verified = true;
             existedUser.verification_token = '';
-            existedUser.save();
-            return new User(existedUser);
+            return existedUser.save();
         } catch (error) {
             handleSequelizeError(error, 'Verifying email');
         }
@@ -226,6 +225,19 @@ export default class User {
             return new User(existedUser);
         } catch (error) {
             handleSequelizeError(error, 'Storing user picture');
+        }
+    }
+
+    static async deletePictureFileName(userId: number): Promise<void | null> {
+        try {
+            const existedUser: User | null = await User.findUserById(userId);
+            if (!existedUser) {
+                return null;
+            }
+            existedUser.picture = '';
+            await existedUser.save();
+        } catch (error) {
+            handleSequelizeError(error, 'Deleting user picture');
         }
     }
 

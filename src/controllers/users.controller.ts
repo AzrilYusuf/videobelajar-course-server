@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { JwtPayload } from 'jsonwebtoken';
+import { unlink } from 'fs';
+import { promisify } from 'util';
 import { RequestWithToken } from '../interfaces/authInterface';
 import { UpdateUser } from 'src/interfaces/userInterface';
 
@@ -99,7 +101,7 @@ class UsersController {
 
     async getUrlPicture(req: RequestWithToken, res: Response): Promise<void> {
         try {
-            const userId = (req.token as JwtPayload).id;
+            const userId: number = (req.token as JwtPayload).id;
             const existedFileName: string | undefined | null =
                 await User.findPictureFileName(userId);
 
@@ -119,6 +121,46 @@ class UsersController {
                     `/assets/images/${existedFileName}`;
 
             res.status(200).json({ picturePath });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: `An internal server error occurred: ${error.message}`,
+            });
+        }
+    }
+
+    async deletePicture(req: RequestWithToken, res: Response): Promise<void> {
+        try {
+            const userId: number = (req.token as JwtPayload).id;
+            const existedFileName: string | undefined | null =
+                await User.findPictureFileName(userId);
+
+            if (existedFileName === null) {
+                res.status(404).json({ error: 'The user is not found.' });
+                throw new Error('The user is not found.');
+            }
+
+            if (existedFileName === undefined) {
+                res.status(404).json({ error: 'The picture is not found.' });
+                throw new Error('The picture is not found.');
+            }
+
+            // Delete user picture in the uploads directory
+            const unlinkAsync = promisify(unlink);
+            await unlinkAsync(`uploads/${existedFileName}`);
+
+            // Delete user picture filename in database
+            const deletedPicture: void | null =
+                await User.deletePictureFileName(userId);
+            // If the user is not found
+            if (deletedPicture === null) {
+                res.status(404).json({ error: 'Could not delete picture, the user is not found.' });
+                throw new Error('Could not delete picture, the user is not found.');
+            }
+
+            res.status(204).json({
+                message: 'The picture successfully deleted!',
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({
