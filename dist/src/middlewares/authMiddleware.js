@@ -23,10 +23,8 @@ const authenticateUser = (req, res, next) => {
         }
         const decodedAccessToken = (0, decodeToken_1.default)(accessToken, process.env.ACCESS_TOKEN_SECRET_KEY);
         const decodedRefreshToken = (0, decodeToken_1.default)(refreshToken, process.env.REFRESH_TOKEN_SECRET_KEY);
-        if (decodedAccessToken.id !==
-            decodedRefreshToken.id ||
-            decodedAccessToken.role !==
-                decodedRefreshToken.role) {
+        if (decodedAccessToken.id !== decodedRefreshToken.id ||
+            decodedAccessToken.role !== decodedRefreshToken.role) {
             res.status(403).json({
                 error: 'You are not forbidden to access this method.',
             });
