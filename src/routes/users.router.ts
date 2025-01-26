@@ -28,7 +28,7 @@ usersRouter.put(
     usersController.updateUser
 );
 
-// Update user picture
+// Upload user picture
 usersRouter.post(
     '/upload-picture',
     authenticateUser,
@@ -38,9 +38,16 @@ usersRouter.post(
 
 // Get url picture
 usersRouter.get(
-    '/url-picture',
+    '/picture',
     authenticateUser,
     usersController.getUrlPicture
+);
+
+// Delete user picture
+usersRouter.delete(
+    '/picture',
+    authenticateUser,
+    usersController.deletePicture
 );
 
 // Delete user

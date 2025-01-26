@@ -94,7 +94,7 @@ class User {
     static verifyEmail(id, token) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const existedUser = yield users_1.default.findByPk(id);
+                const existedUser = yield User.findUserById(id);
                 if (!existedUser) {
                     return null;
                 }
@@ -103,8 +103,7 @@ class User {
                 }
                 existedUser.is_verified = true;
                 existedUser.verification_token = '';
-                existedUser.save();
-                return new User(existedUser);
+                return existedUser.save();
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.default)(error, 'Verifying email');
@@ -203,6 +202,21 @@ class User {
             }
             catch (error) {
                 (0, sequelizeErrorHandler_1.default)(error, 'Storing user picture');
+            }
+        });
+    }
+    static deletePictureFileName(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const existedUser = yield User.findUserById(userId);
+                if (!existedUser) {
+                    return null;
+                }
+                existedUser.picture = '';
+                yield existedUser.save();
+            }
+            catch (error) {
+                (0, sequelizeErrorHandler_1.default)(error, 'Deleting user picture');
             }
         });
     }
