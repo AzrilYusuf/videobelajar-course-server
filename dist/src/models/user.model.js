@@ -190,13 +190,13 @@ class User {
             }
         });
     }
-    static storePictureFileName(userId, userPicture) {
+    static storePictureFileName(userId, fileName) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existedUser = yield users_1.default.findByPk(userId);
                 if (!existedUser)
                     return null;
-                existedUser.picture = userPicture;
+                existedUser.picture = fileName;
                 yield existedUser.save();
                 return new User(existedUser);
             }

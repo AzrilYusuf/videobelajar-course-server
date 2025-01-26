@@ -211,16 +211,16 @@ export default class User {
         }
     }
 
-    // Store user picture filename in database
+    // Store user picture filename in database (Used for storing new user picture or updating user picture)
     static async storePictureFileName(
         userId: number,
-        userPicture: string
+        fileName: string
     ): Promise<User | null> {
         try {
             const existedUser: Users | null = await Users.findByPk(userId);
             if (!existedUser) return null;
 
-            existedUser.picture = userPicture;
+            existedUser.picture = fileName;
             await existedUser.save();
             return new User(existedUser);
         } catch (error) {
