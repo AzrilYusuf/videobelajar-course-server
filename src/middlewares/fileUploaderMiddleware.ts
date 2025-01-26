@@ -3,7 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { Request } from 'express';
 
+// Create uploads directory when server starts
 const uploadsDir: string = path.join(__dirname, '../../uploads');
+// Check if uploads directory exists
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -15,8 +17,7 @@ const storage: multer.StorageEngine = multer.diskStorage({
         cb: (error: Error | null, destination: string) => void // cb means callback
     ): void => {
         try {
-            console.log(`Uploads Directory: ${uploadsDir}`);
-            cb(null, 'uploads/');
+            cb(null, 'uploads/'); // store file in uploads directory
         } catch (err) {
             console.error('Error in destination function:', err);
             cb(err, '');

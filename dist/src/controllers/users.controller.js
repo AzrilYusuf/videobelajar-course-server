@@ -131,8 +131,8 @@ class UsersController {
                 const userId = req.token.id;
                 const filePicture = req.file;
                 if (!filePicture) {
-                    res.status(400).json({ error: 'No picture was uploaded.' });
-                    throw new Error('No picture was uploaded.');
+                    res.status(400).json({ error: 'No picture was updated.' });
+                    throw new Error('No picture was updated.');
                 }
                 const existedFileName = yield user_model_1.default.findPictureFileName(userId);
                 if (existedFileName === null) {

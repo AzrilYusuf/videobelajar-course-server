@@ -4,7 +4,7 @@ import authenticateUser from '../middlewares/authMiddleware';
 import authorizeAdmin from '../middlewares/authAdminMiddleware';
 import Validator from '../validators/validator';
 import validateRequest from '../middlewares/validationMiddleware';
-import uploader from '../middlewares/uploaderMiddleware';
+import uploader from '../middlewares/fileUploaderMiddleware';
 
 const usersRouter: Router = express.Router();
 
